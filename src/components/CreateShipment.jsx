@@ -51,8 +51,9 @@ const materialTypes = [
 ];
 const transportModes = ['Road Transport', 'Rail Transport', 'Air Transport', 'Sea Transport', 'Intermodal'];
 const coolingType = ['Ambient temperature/Non-Refrigerated', 'Refrigerated Frozen temperature', 'Refrigerated Chiller'];
-const truckSize = ['14 ft', '17 ft', '19 ft', '20 ft', '22 ft', '24 ft', '32 ft', '40 ft'];
-
+const truckSize = ['Small Vehicle','12 ft', '14 ft', '17 ft', '19 ft', '20 ft', '22 ft', '24 ft', '32 ft', '40 ft'];
+const units = ['Ft', 'Meter', 'Inch', 'Cm', 'Yard'];
+const smallVehicle= ['Tata Ace', 'Bolero', 'Echo', 'Champion'];
 /**
  * --- Helpers ---
  */
@@ -184,7 +185,7 @@ const RequestPreview = ({ formData, onEdit, onConfirm, loading }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Route */}
-        <PreviewSection title="Route" icon={<MapPin size={18} className="text-blue-600" />}> 
+        <PreviewSection title="Route" icon={<MapPin size={18} className="text-blue-600" />}>
           <DetailItem
             label="Pickup From"
             value={renderValue(`${formData.pickupAddressLine1}, ${formData.pickupAddressLine2}, ${formData.pickupState} - ${formData.pickupPincode}`)}
@@ -196,13 +197,13 @@ const RequestPreview = ({ formData, onEdit, onConfirm, loading }) => {
         </PreviewSection>
 
         {/* Schedule */}
-        <PreviewSection title="Schedule" icon={<Calendar size={18} className="text-green-600" />}> 
+        <PreviewSection title="Schedule" icon={<Calendar size={18} className="text-green-600" />}>
           <DetailItem label="Expected Pickup Date" value={renderValue(formatDate(formData.expectedPickup))} />
           <DetailItem label="Expected Delivery Date" value={renderValue(formatDate(formData.expectedDelivery))} />
         </PreviewSection>
 
         {/* Cargo Details */}
-        <PreviewSection title="Cargo Details" icon={<Package size={18} className="text-yellow-600" />}> 
+        <PreviewSection title="Cargo Details" icon={<Package size={18} className="text-yellow-600" />}>
           <DetailItem
             label="Material Type"
             value={renderValue(formData.materialType === 'Others' ? formData.customMaterialType : formData.materialType)}
@@ -218,7 +219,7 @@ const RequestPreview = ({ formData, onEdit, onConfirm, loading }) => {
         </PreviewSection>
 
         {/* Logistics */}
-        <PreviewSection title="Logistics Requirements" icon={<Truck size={18} className="text-purple-600" />}> 
+        <PreviewSection title="Logistics Requirements" icon={<Truck size={18} className="text-purple-600" />}>
           <DetailItem label="Shipment Type" value={renderValue(formData.shipmentType)} />
           <DetailItem label="Body Type" value={renderValue(formData.bodyType)} />
           <DetailItem label="Transport Mode" value={renderValue(formData.transportMode)} />
@@ -277,7 +278,6 @@ export const ShipmentRequestForm = ({ onComplete }) => {
     dropPincode: '',
 
     // Shipment details
-    shipmentType: '', // PTL / FTL
     materialType: '',
     customMaterialType: '',
     bodyType: '', // Open / Closed
@@ -289,6 +289,7 @@ export const ShipmentRequestForm = ({ onComplete }) => {
     length: '',
     width: '',
     height: '',
+    unit:'',
 
     // Schedule
     expectedPickup: '',
@@ -721,13 +722,21 @@ export const ShipmentRequestForm = ({ onComplete }) => {
         </div>
 
         <div>
-          <div className="flex items-center text-sm font-medium text-gray-800 mb-2"><Ruler className="w-4 h-4 mr-2 text-orange-600" />Dimensions (feet)</div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <TextInput type="number" name="length" value={formData.length} onChange={handleInputChange} placeholder="Length (ft)" min={0} step={0.1} />
-            <TextInput type="number" name="width" value={formData.width} onChange={handleInputChange} placeholder="Width (ft)" min={0} step={0.1} />
-            <TextInput type="number" name="height" value={formData.height} onChange={handleInputChange} placeholder="Height (ft)" min={0} step={0.1} />
+          <div className="flex items-center text-sm font-medium text-gray-800 mb-2"><Ruler className="w-4 h-4 mr-2 text-orange-600" />Dimensions</div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <TextInput  type="number" name="length" value={formData.length} onChange={handleInputChange} placeholder="Length" min={0} step={0.1} />
+            <TextInput  type="number" name="width" value={formData.width} onChange={handleInputChange} placeholder="Width" min={0} step={0.1} />
+            <TextInput  type="number" name="height" value={formData.height} onChange={handleInputChange} placeholder="Height" min={0} step={0.1} />
+              <SelectInput id="unit" name="unit" value={formData.unit} onChange={handleInputChange} required>
+                <option value="">Select Unit</option>
+                {units.map((unit) => (
+                  <option key={unit} value={unit}>{unit}</option>
+                ))}
+              </SelectInput>
+
           </div>
         </div>
+
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Field label="Expected Pickup Date" id="expectedPickup" required icon={<Calendar className="w-4 h-4" />} error={errors.expectedPickup}>
@@ -756,14 +765,6 @@ export const ShipmentRequestForm = ({ onComplete }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-start">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-800">Shipment Type <span className="text-rose-500">*</span></label>
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Radio name="shipmentType" value="PTL" checked={formData.shipmentType === 'PTL'} onChange={handleInputChange} label="PTL" />
-              <Radio name="shipmentType" value="FTL" checked={formData.shipmentType === 'FTL'} onChange={handleInputChange} label="FTL" />
-            </div>
-          </div>
-
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-800">Body Type <span className="text-rose-500">*</span></label>
             <div className="flex flex-wrap gap-4 pt-2">
@@ -833,6 +834,18 @@ export const ShipmentRequestForm = ({ onComplete }) => {
                   <option value="">Select truck size</option>
                   {truckSize.map((size) => (
                     <option key={size} value={size}>{size}</option>
+                  ))}
+                </SelectInput>
+              </Field>
+            </div>
+          )}
+          {formData.truckSize === 'Small Vehicle' && (
+            <div className="md:col-span-1">
+              <Field label="Vehicle Type" id="vehicleType" error={errors.vehicleType} icon={<Truck className="w-4 h-4" />}>
+                <SelectInput id="vehicleType" name="vehicleType" value={formData.vehicleType} onChange={handleInputChange}>
+                  <option value="">Select vehicle type</option>
+                  {smallVehicle.map((type) => (
+                    <option key={type} value={type}>{type}</option>
                   ))}
                 </SelectInput>
               </Field>

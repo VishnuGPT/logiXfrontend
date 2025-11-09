@@ -4,6 +4,7 @@ import { Input } from './Input';
 import { Button } from './Button'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../../assets/LOGO.png'; 
+import { useNavigate } from 'react-router-dom';
 
 // --- Data for easy management ---
 const footerLinks = [

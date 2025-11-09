@@ -13,6 +13,10 @@ import AboutUs from './pages/About_us';
 import Careers from './pages/Career';
 import SignInPage from './pages/Sign_in';
 import SignupFormPage from './pages/Signup_otp';
+import PrivacyPolicy from './pages/PrivacyPolicy';
+import CookiePolicy from './pages/signup/CookiePolicy';
+import TermsOfService from './pages/TermsOfService';
+import CreateShipment from './components/CreateShipment'
 
 import CarrierRegistration from './pages/signup/transporter_registration';
 
@@ -54,10 +58,15 @@ function App() {
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/careers" element={<Careers />} />
             <Route path="/join-us" element={<Careers />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/cookies" element={<CookiePolicy />} />
+            <Route path="/terms" element={<TermsOfService />} />
           </Route>
 
           {/* --- Full-screen pages (no Navbar/Footer) --- */}
           <Route element={<FullPageLayout />}>
+            <Route path="/create-shipment" element={<CreateShipment />} />
+
             {/* Auth Routes */}
             <Route path="/admin-sign-in" element={<AdminSignIn />} />
             <Route path="/sign-in" element={<SignInPage />} />
