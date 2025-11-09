@@ -1,8 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { FaTruckLoading, FaPeopleCarry } from "react-icons/fa";
-import logo from "../../assets/LOGO.png";
+// import { FaTruckLoading, FaPeopleCarry } from "react-icons/fa"; // REMOVED
+import ftlImage from "../../assets/ftl.png"; // ADDED - (Assuming you save it here)
+import packersImage from "../../assets/packers.png"; // ADDED - (Assuming you save it here)
 
 export default function Services() {
   const navigate = useNavigate();
@@ -11,7 +12,14 @@ export default function Services() {
   const services = [
     {
       id: "ftl",
-      icon: <FaTruckLoading className="h-8 w-8 text-[#E32636]" />,
+      // UPDATED icon to be an <img> tag
+      icon: (
+        <img
+          src={ftlImage}
+          alt="FTL Service"
+          className="w-full h-full object-cover"
+        />
+      ),
       title: "FTL (Full Truckload)",
       desc: "Dedicated full-truck shipments ensuring speed, reliability, and optimized routing.",
       btnText: "Request FTL Quote",
@@ -19,7 +27,14 @@ export default function Services() {
     },
     {
       id: "packers",
-      icon: <FaPeopleCarry className="h-8 w-8 text-[#0091D5]" />,
+      // UPDATED icon to be an <img> tag
+      icon: (
+        <img
+          src={packersImage}
+          alt="Packers & Movers Service"
+          className="w-full h-full object-cover"
+        />
+      ),
       title: "Packers & Movers",
       desc: "Safe and professional packing, moving, and doorstep delivery for homes and offices.",
       btnText: "Get Packers Quote",
@@ -30,62 +45,107 @@ export default function Services() {
   return (
     <section
       id="services"
-      className="bg-[linear-gradient(180deg,rgba(0,145,213,0.05),rgba(227,38,54,0.03))] py-20 sm:py-24"
+      className="bg-[linear-gradient(180deg,rgba(0,145,213,0.05),rgba(227,38,54,0.03))] py-10 sm:py-20"
     >
-      <div className="max-w-7xl mx-auto px-6 text-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <h2 className="text-4xl md:text-5xl font-extrabold text-[#001F3F] mb-4">
-          {t("header.title", { defaultValue: "Our Core Services" })}
-        </h2>
-        <p className="text-lg text-[#001F3F]/70 max-w-2xl mx-auto mb-16">
-          {t("header.subtitle", {
-            defaultValue:
-              "From nationwide freight movement to personalized shifting — we’ve got it all covered.",
-          })}
-        </p>
+        <div className="text-center mb-8 sm:mb-16">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#001F3F]">
+            {t("header.title", { defaultValue: "Our Core Services" })}
+          </h2>
+          <p className="text-sm sm:text-lg text-[#001F3F]/70 max-w-2xl mx-auto mt-3">
+            {t("header.subtitle", {
+              defaultValue:
+                "From nationwide freight movement to personalized shifting — we’ve got it all covered.",
+            })}
+          </p>
+        </div>
 
-        {/* Service Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+        {/* Mobile: Stacked vertical cards */}
+        <div className="sm:hidden flex flex-col gap-4">
           {services.map((service) => (
-            <div
+            <article
               key={service.id}
-              className="bg-white p-8 rounded-2xl border border-[#001F3F]/10 shadow-sm 
-                         hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
+              className="bg-white rounded-2xl border border-[#001F3F]/8 shadow-sm p-4"
+              aria-labelledby={`svc-${service.id}`}
             >
-              <div className="flex flex-col items-start gap-5 text-left">
-                <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-white shadow-sm border border-[#001F3F]/10">
+              <div className="flex items-start gap-3">
+                {/* UPDATED container div for mobile - w-24 h-24 */}
+                <div
+                  className="w-24 h-24 rounded-xl bg-[rgba(0,0,0,0.03)] shrink-0 overflow-hidden" // Increased size
+                  style={{ border: "1px solid rgba(0,31,63,0.06)" }}
+                >
+                  {/* UPDATED - now just renders the img from the array */}
                   {service.icon}
                 </div>
 
-                <div>
-                  <h3 className="text-2xl font-semibold text-[#001F3F]">
+                <div className="flex-1">
+                  <h3
+                    id={`svc-${service.id}`}
+                    className="text-base font-semibold text-[#001F3F]"
+                  >
                     {service.title}
                   </h3>
-                  <p className="text-[#001F3F]/80 mt-2 leading-relaxed">
+                  <p className="text-xs text-[#001F3F]/70 mt-1 leading-tight">
                     {service.desc}
                   </p>
-                </div>
 
-                <div className="pt-3">
                   <button
-                    onClick={() => navigate(`/services/form?service=${service.id}`)}
-                    className="px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 hover:opacity-90"
+                    onClick={() =>
+                      navigate(`/services/form?service=${service.id}`)
+                    }
+                    className="mt-3 w-full text-sm font-semibold py-2 rounded-full text-white"
                     style={{ backgroundColor: service.color }}
+                    aria-label={service.btnText}
                   >
                     {service.btnText}
                   </button>
                 </div>
               </div>
-            </div>
+            </article>
           ))}
         </div>
 
-        {/* Brand Footer */}
-        <div className="flex items-center justify-center gap-3 mt-16 opacity-90">
-          <img src={logo} alt="LogiXjunction logo" className="w-10 h-10 object-contain" />
-          <span className="text-sm font-semibold text-[#0091D5]">
-            LogiXjunction — Smarter Logistics, Simplified.
-          </span>
+        {/* Desktop / tablet: nice grid */}
+        <div className="hidden sm:grid sm:grid-cols-2 gap-8">
+          {services.map((service) => (
+            <div
+              key={service.id}
+              className="bg-white p-8 rounded-2xl border border-[#001F3F]/10 shadow-sm hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1"
+            >
+              <div className="flex items-start gap-6">
+                {/* UPDATED container div for desktop - w-20 h-20 */}
+                <div
+                  className="w-20 h-20 rounded-xl bg-white shadow-sm border border-[#001F3F]/10 overflow-hidden" // Increased size
+                  aria-hidden
+                >
+                  {/* UPDATED - now just renders the img from the array */}
+                  {service.icon}
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-2xl font-semibold text-[#001F3F]">
+                    {service.title}
+                  </h3>
+                  <p className="text-[#001F3F]/80 mt-3 leading-relaxed">
+                    {service.desc}
+                  </p>
+
+                  <div className="pt-4">
+                    <button
+                      onClick={() =>
+                        navigate(`/services/form?service=${service.id}`)
+                      }
+                      className="px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 hover:opacity-95"
+                      style={{ backgroundColor: service.color }}
+                    >
+                      {service.btnText}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
