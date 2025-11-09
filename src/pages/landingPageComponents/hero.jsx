@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import logixjunction from "../../assets/j2.mp4";
 
-export default function Hero() {
+export default function Hero({scrollToComponent}) {
   const navigate = useNavigate();
   const { t } = useTranslation("hero");
 
@@ -64,7 +64,7 @@ export default function Hero() {
           */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center sm:justify-start">
             <button
-              onClick={() => navigate("/create-shipment")}
+              onClick={scrollToComponent}
               className="px-8 py-3 bg-[#E32636] hover:cursor-pointer text-white rounded-full font-semibold transition hover:opacity-80"
             >
               Ship Order Now!!

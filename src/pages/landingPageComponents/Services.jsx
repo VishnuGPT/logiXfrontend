@@ -1,9 +1,79 @@
-import React from "react";
+import React, { useCallback, memo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-// import { FaTruckLoading, FaPeopleCarry } from "react-icons/fa"; // REMOVED
-import ftlImage from "../../assets/ftl.png"; // ADDED - (Assuming you save it here)
-import packersImage from "../../assets/packers.png"; // ADDED - (Assuming you save it here)
+import { motion } from "framer-motion";
+
+import ftlImage from "../../assets/ftl.png";
+import packersImage from "../../assets/packers.png";
+import ptlImage from "../../assets/ptl.png";
+
+const ServiceCard = memo(function ServiceCard({ service, onSelect }) {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onSelect(service.id);
+    }
+  };
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ translateY: -6 }}
+      transition={{ type: "spring", stiffness: 160, damping: 18 }}
+      className="bg-white p-8 rounded-2xl border border-[#001F3F]/10 shadow-sm hover:shadow-lg transition-transform duration-300"
+      tabIndex={0}
+      role="button"
+      aria-labelledby={`svc-${service.id}`}
+      onKeyDown={handleKeyDown}
+      onClick={() => onSelect(service.id)}
+    >
+      <div className="flex items-start gap-6">
+        <div
+          className="w-20 h-20 rounded-xl bg-white shadow-sm border border-[#001F3F]/10 overflow-hidden"
+          aria-hidden
+        >
+          <img
+            src={service.image}
+            alt={service.alt}
+            loading="lazy"
+            decoding="async"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="flex-1 min-w-0">
+          <h3
+            id={`svc-${service.id}`}
+            className="text-2xl font-semibold text-[#001F3F] truncate"
+            title={service.title}
+          >
+            {service.title}
+          </h3>
+
+          <p className="text-[#001F3F]/80 mt-3 leading-relaxed">
+            {service.desc}
+          </p>
+
+          <div className="pt-4">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(service.id);
+              }}
+              className="px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 hover:opacity-95"
+              style={{ backgroundColor: service.color }}
+              aria-label={service.btnText}
+            >
+              {service.btnText}
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.article>
+  );
+});
 
 export default function Services() {
   const navigate = useNavigate();
@@ -12,35 +82,48 @@ export default function Services() {
   const services = [
     {
       id: "ftl",
-      // UPDATED icon to be an <img> tag
-      icon: (
-        <img
-          src={ftlImage}
-          alt="FTL Service"
-          className="w-full h-full object-cover"
-        />
-      ),
-      title: "FTL (Full Truckload)",
-      desc: "Dedicated full-truck shipments ensuring speed, reliability, and optimized routing.",
-      btnText: "Request FTL Quote",
+      image: ftlImage,
+      alt: t("ftl.alt", { defaultValue: "FTL truck on highway" }),
+      title: t("ftl.title", { defaultValue: "FTL (Full Truckload)" }),
+      desc: t("ftl.desc", {
+        defaultValue:
+          "Dedicated full-truck shipments ensuring speed, reliability, and optimized routing.",
+      }),
+      btnText: t("ftl.btn", { defaultValue: "Request FTL Quote" }),
       color: "#E32636",
     },
     {
+      id: "ptl",
+      image: ptlImage,
+      alt: t("ptl.alt", { defaultValue: "PTL cargo being loaded" }),
+      title: t("ptl.title", { defaultValue: "PTL (Part Truckload)" }),
+      desc: t("ptl.desc", {
+        defaultValue:
+          "Cost-effective shipping for partial loads, consolidating your goods with others.",
+      }),
+      btnText: t("ptl.btn", { defaultValue: "Request PTL Quote" }),
+      color: "#F39C12",
+    },
+    {
       id: "packers",
-      // UPDATED icon to be an <img> tag
-      icon: (
-        <img
-          src={packersImage}
-          alt="Packers & Movers Service"
-          className="w-full h-full object-cover"
-        />
-      ),
-      title: "Packers & Movers",
-      desc: "Safe and professional packing, moving, and doorstep delivery for homes and offices.",
-      btnText: "Get Packers Quote",
+      image: packersImage,
+      alt: t("packers.alt", { defaultValue: "Packers and movers" }),
+      title: t("packers.title", { defaultValue: "Packers & Movers" }),
+      desc: t("packers.desc", {
+        defaultValue:
+          "Safe and professional packing, moving, and doorstep delivery for homes and offices.",
+      }),
+      btnText: t("packers.btn", { defaultValue: "Get Packers Quote" }),
       color: "#0091D5",
     },
   ];
+
+  const handleSelect = useCallback(
+    (serviceId) => {
+      navigate(`/services/form?service=${encodeURIComponent(serviceId)}`);
+    },
+    [navigate]
+  );
 
   return (
     <section
@@ -48,7 +131,6 @@ export default function Services() {
       className="bg-[linear-gradient(180deg,rgba(0,145,213,0.05),rgba(227,38,54,0.03))] py-10 sm:py-20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <div className="text-center mb-8 sm:mb-16">
           <h2 className="text-2xl sm:text-4xl font-extrabold text-[#001F3F]">
             {t("header.title", { defaultValue: "Our Core Services" })}
@@ -61,7 +143,7 @@ export default function Services() {
           </p>
         </div>
 
-        {/* Mobile: Stacked vertical cards */}
+        {/* Mobile version reverted to simpler layout */}
         <div className="sm:hidden flex flex-col gap-4">
           {services.map((service) => (
             <article
@@ -70,19 +152,20 @@ export default function Services() {
               aria-labelledby={`svc-${service.id}`}
             >
               <div className="flex items-start gap-3">
-                {/* UPDATED container div for mobile - w-24 h-24 */}
                 <div
-                  className="w-24 h-24 rounded-xl bg-[rgba(0,0,0,0.03)] shrink-0 overflow-hidden" // Increased size
+                  className="w-24 h-24 rounded-xl bg-[rgba(0,0,0,0.03)] shrink-0 overflow-hidden"
                   style={{ border: "1px solid rgba(0,31,63,0.06)" }}
                 >
-                  {/* UPDATED - now just renders the img from the array */}
-                  {service.icon}
+                  <img
+                    src={service.image}
+                    alt={service.alt}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <h3
                     id={`svc-${service.id}`}
-                    className="text-base font-semibold text-[#001F3F]"
+                    className="text-base font-semibold text-[#001F3F] whitespace-nowrap overflow-hidden text-ellipsis"
                   >
                     {service.title}
                   </h3>
@@ -91,9 +174,7 @@ export default function Services() {
                   </p>
 
                   <button
-                    onClick={() =>
-                      navigate(`/services/form?service=${service.id}`)
-                    }
+                    onClick={() => navigate(`/services/form?service=${service.id}`)}
                     className="mt-3 w-full text-sm font-semibold py-2 rounded-full text-white"
                     style={{ backgroundColor: service.color }}
                     aria-label={service.btnText}
@@ -106,47 +187,69 @@ export default function Services() {
           ))}
         </div>
 
-        {/* Desktop / tablet: nice grid */}
-        <div className="hidden sm:grid sm:grid-cols-2 gap-8">
-          {services.map((service) => (
-            <div
-              key={service.id}
-              className="bg-white p-8 rounded-2xl border border-[#001F3F]/10 shadow-sm hover:shadow-lg transition-transform duration-300 transform hover:-translate-y-1"
-            >
-              <div className="flex items-start gap-6">
-                {/* UPDATED container div for desktop - w-20 h-20 */}
-                <div
-                  className="w-20 h-20 rounded-xl bg-white shadow-sm border border-[#001F3F]/10 overflow-hidden" // Increased size
-                  aria-hidden
-                >
-                  {/* UPDATED - now just renders the img from the array */}
-                  {service.icon}
-                </div>
-
-                <div className="flex-1">
-                  <h3 className="text-2xl font-semibold text-[#001F3F]">
-                    {service.title}
-                  </h3>
-                  <p className="text-[#001F3F]/80 mt-3 leading-relaxed">
-                    {service.desc}
-                  </p>
-
-                  <div className="pt-4">
-                    <button
-                      onClick={() =>
-                        navigate(`/services/form?service=${service.id}`)
-                      }
-                      className="px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 hover:opacity-95"
-                      style={{ backgroundColor: service.color }}
-                    >
-                      {service.btnText}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+{/* Desktop / tablet: enhanced service cards */}
+<div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+  {services.map((s) => (
+    <motion.article
+      key={s.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{
+        y: -8,
+        boxShadow: `0 10px 25px -8px ${s.color}40`,
+        borderColor: `${s.color}60`,
+      }}
+      transition={{ type: "spring", stiffness: 140, damping: 15 }}
+      className="group bg-white p-8 rounded-3xl border border-[#001F3F]/10 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#001F3F]/40"
+      role="button"
+      tabIndex={0}
+      onClick={() => handleSelect(s.id)}
+    >
+      <div className="flex flex-col items-center text-center h-full">
+        {/* Image with gradient border */}
+        <div
+          className="relative w-24 h-24 rounded-2xl overflow-hidden mb-6 border border-transparent bg-gradient-to-br from-[#001F3F]/10 to-transparent group-hover:from-[#001F3F]/20"
+          aria-hidden
+        >
+          <img
+            src={s.image}
+            alt={s.alt}
+            className="w-full h-full object-contain rounded-2xl transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
+
+        {/* Title */}
+        <h3
+          id={`svc-${s.id}`}
+          className="text-xl font-bold text-[#001F3F] mb-3 truncate"
+          title={s.title}
+        >
+          {s.title}
+        </h3>
+
+        {/* Description */}
+        <p className="text-[#001F3F]/75 text-sm leading-relaxed mb-6 line-clamp-3">
+          {s.desc}
+        </p>
+
+        {/* Button */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSelect(s.id);
+          }}
+          className="mt-auto px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 group-hover:scale-105"
+          style={{ backgroundColor: s.color }}
+          aria-label={s.btnText}
+        >
+          {s.btnText}
+        </button>
+      </div>
+    </motion.article>
+  ))}
+</div>
       </div>
     </section>
   );

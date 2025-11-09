@@ -1,46 +1,94 @@
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { FaChevronDown } from "react-icons/fa"; // 1. Imported a better icon
 
 export default function FAQ() {
-  const { t } = useTranslation("faq"); // using faq.json namespace
+  const { t } = useTranslation("faq");
   const [openIndex, setOpenIndex] = useState(null);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
-  const faqs = t("faqs", { returnObjects: true }); // now it's array of objects
+  // Default value in case t() fails
+  const faqs = t("faqs", { returnObjects: true }) || [];
 
   return (
-    <section className="relative min-h-screen snap-start bg-lxj-softWhite px-6 py-20">
-      <div className="max-w-4xl mx-auto">
-        <h2 className="text-2xl font-semibold text-center text-gray-800 mb-2">
-          {t("header.title")}
-        </h2>
-        <p className="text-center text-gray-500 mb-10">
-          {t("header.subtitle")}
-        </p>
+    // 2. Applied matching section styles (background, padding)
+    <section
+      id="faq"
+      className="bg-[linear-gradient(180deg,rgba(0,145,213,0.05),rgba(227,38,54,0.03))] py-10 sm:py-20"
+    >
+      {/* 3. Applied matching container styles (width, padding) */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* 4. Applied matching Header styles */}
+        <div className="text-center mb-8 sm:mb-16">
+          <h2 className="text-2xl sm:text-4xl font-extrabold text-[#001F3F]">
+            {t("header.title", {
+              defaultValue: "Frequently Asked Questions",
+            })}
+          </h2>
+          <p className="text-sm sm:text-lg text-[#001F3F]/70 max-w-2xl mx-auto mt-3">
+            {t("header.subtitle", {
+              defaultValue: "Have questions? We’ve got answers.",
+            })}
+          </p>
+        </div>
 
+        {/* 5. Applied matching gap for mobile */}
         <div className="space-y-4">
           {faqs.map((faq, index) => (
+            // 6. Styled each item as a "card" to match your design
             <div
               key={index}
-              className="border-b border-gray-200 pb-4 cursor-pointer"
-              onClick={() => toggleFAQ(index)}
+              className="bg-white rounded-2xl border border-[#001F3F]/10 shadow-sm"
             >
-              <div className="flex justify-between items-center">
-                <h3 className="text-base font-medium text-gray-700">
+              {/* 7. Clickable header area with matching padding */}
+              <div
+                className="flex justify-between items-center cursor-pointer p-4 sm:p-6"
+                onClick={() => toggleFAQ(index)}
+                aria-expanded={openIndex === index}
+                aria-controls={`faq-answer-${index}`}
+              >
+                {/* 8. Question text matches mobile "title" style */}
+                <h3
+                  id={`faq-question-${index}`}
+                  className="text-base font-semibold text-[#001F3F]"
+                >
                   {faq.question}
                 </h3>
-                <span className="text-gray-500">
-                  {openIndex === index ? "−" : "+"}
-                </span>
+                {/* 9. Replaced +/- with animated chevron icon */}
+                <FaChevronDown
+                  className={`
+                    text-base text-[#0091D5] shrink-0
+                    transition-transform duration-300
+                    ${openIndex === index ? "rotate-180" : "rotate-0"}
+                  `}
+                  aria-hidden
+                />
               </div>
-              {openIndex === index && (
-                <div className="mt-3 text-gray-600 text-sm min-h-[40px]">
+
+              {/* 10. Animation Wrapper:
+                  - Uses max-height for smooth slide-down/up.
+                  - No more conditional rendering (&&), just CSS.
+              */}
+              <div
+                id={`faq-answer-${index}`}
+                role="region"
+                aria-labelledby={`faq-question-${index}`}
+                className={`
+                  overflow-hidden transition-[max-height] duration-500 ease-in-out
+                  ${openIndex === index ? "max-h-[500px]" : "max-h-0"}
+                `}
+              >
+                {/* 11. Answer text:
+                    - Matches mobile "description" style (text-xs).
+                    - Has horizontal/bottom padding.
+                */}
+                <div className="text-xs sm:text-sm text-[#001F3F]/80 leading-relaxed px-4 pb-4 sm:px-6 sm:pb-6">
                   {faq.answer}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>
