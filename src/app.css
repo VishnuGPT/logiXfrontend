@@ -118,3 +118,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+
+@keyframes auraPulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.03); }
+}
+
+.animate-aura {
+  animation: auraPulse 6s ease-in-out infinite;
+}
