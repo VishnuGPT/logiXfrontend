@@ -19,14 +19,13 @@ const cities = [
   { key: "mumbai", img: "/cities/mumbai.jpg" },
   { key: "nagpur", img: "/cities/nagpur.jpg" },
   { key: "nashik", img: "/cities/nashik.jpg" },
-  { key: "pune", img: "/cities/pune.jpg" },
+  { key:"pune", img: "/cities/pune.jpg" },
   { key: "surat", img: "/cities/surat.jpg" },
   { key: "trivandrum", img: "/cities/trivandrum.jpg" },
   { key: "vadodara", img: "/cities/vadodara.jpg" },
-  { key: "visakhapatnam", img: "/cities/visakhapatnam.jpg" },
+  { key: "visakhapatnam", img: "/cities/visakhapatnam.jpg" }
 ];
 
-// --- UPDATED ANIMATION ---
 const scrollAnimation = `
   @keyframes infinite-scroll {
     0% { transform: translateX(0); }
@@ -34,26 +33,23 @@ const scrollAnimation = `
   }
 
   .scroller-inner {
-    /* This is the default (desktop) speed */
-    animation: infinite-scroll 25s linear infinite;
+    /* Desktop speed */
+    animation: infinite-scroll 40s linear infinite;
   }
 
-  /* This media query targets screens 640px or smaller */
   @media (max-width: 640px) {
     .scroller-inner {
-      /* This overrides the duration on mobile */
-      animation-duration: 5s; 
+      /* Mobile speed (slower than 5s) */
+      animation-duration: 25s; 
     }
   }
 `;
-// --- END OF UPDATE ---
 
 export default function CitiesChart() {
   const { t } = useTranslation("citiesChart");
 
   return (
     <section className="snap-start flex flex-col items-center justify-center px-6 py-16 bg-background">
-      {/* 2. Add the <style> tag to inject the animation */}
       <style>{scrollAnimation}</style>
 
       {/* Headline + Subtext */}
@@ -72,9 +68,8 @@ export default function CitiesChart() {
             "linear-gradient(to right, transparent 0%, black 10%, black 90%, transparent 100%)",
         }}
       >
-        {/* 3. Use the "scroller-inner" class */}
         <div className="flex scroller-inner">
-          {/* Render the list of cities TWICE for the seamless loop */}
+          {/* Render the list of cities TWICE */}
           {[...cities, ...cities].map((city, index) => (
             <div
               key={`${city.key}-${index}`}

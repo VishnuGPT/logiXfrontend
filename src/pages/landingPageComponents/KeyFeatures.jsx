@@ -1,17 +1,12 @@
 import React from "react";
 import { FaTruckMoving, FaMapMarkedAlt, FaRoute, FaGavel } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
+import { motion } from "framer-motion"; // 1. Import motion
 
 export default function KeyFeatures() {
   const { t } = useTranslation("keyFeatures");
-
-  // Ensure translation returns objects
   const features = t("features", { returnObjects: true }) || [];
-
-  // 1. Define the brand colors from Services component
-  const iconColors = ["#0091D5", "#E32636"]; // Blue and Red
-
-  // 2. Applied responsive icon sizes from Services component
+  const iconColors = ["#0091D5", "#E32636"];
   const icons = [
     <FaTruckMoving key="truck" className="h-8 w-8 sm:h-6 sm:w-6" />,
     <FaMapMarkedAlt key="map" className="h-8 w-8 sm:h-6 sm:w-6" />,
@@ -19,14 +14,34 @@ export default function KeyFeatures() {
     <FaGavel key="gavel" className="h-8 w-8 sm:h-6 sm:w-6" />,
   ];
 
+  // 2. Variants for the container (to stagger children)
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1, // Stagger animation of children by 0.1s
+      },
+    },
+  };
+
+  // 3. Variants for the items
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: { type: "spring", stiffness: 100 },
+    },
+  };
+
   return (
     <section
       id="features"
-      // 3. Matched background AND padding from Services component
       className="bg-[linear-gradient(180deg,rgba(0,145,213,0.05),rgba(227,38,54,0.03))] py-10 sm:py-20"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
-        {/* Section Header - Matched Services component header sizes */}
+        {/* Section Header */}
         <h2 className="text-2xl sm:text-4xl font-extrabold text-[#001F3F]">
           {t("header.title", { defaultValue: "Why Choose Us?" })}
         </h2>
@@ -37,18 +52,25 @@ export default function KeyFeatures() {
           })}
         </p>
 
-        {/* Features Grid - Matched mobile gap */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
+        {/* 4. Apply container variants and viewport animation */}
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8"
+          variants={containerVariants}
+          initial="hidden"
+          whileInView="visible" // Animates when it enters the viewport
+          viewport={{ once: true, amount: 0.3 }} // Animate once, when 30% is visible
+        >
           {features.map((feature, index) => (
-            <div
+            // 5. Apply item variants and springy hover effect
+            <motion.div
               key={feature.title || index}
-              // 5. Matched card padding (p-4 for mobile)
+              variants={itemVariants} // This will be animated by the parent
+              whileHover={{ y: -8, scale: 1.02 }} // Replaces Tailwind hover
+              transition={{ type: "spring", stiffness: 150, damping: 10 }}
               className="bg-white p-4 sm:p-6 rounded-2xl border border-[#001F3F]/10 text-left 
-                       transition-all duration-300 sm:hover:-translate-y-1 sm:hover:shadow-lg"
+                         shadow-sm" // Removed sm:hover:-translate-y-1 & shadow-lg
             >
-              {/* 6. Matched mobile gap */}
               <div className="flex flex-col items-start gap-3 sm:gap-4">
-                {/* 7. Matched icon container size (w-16 h-16 for mobile) */}
                 <div
                   className="flex items-center justify-center w-16 h-16 sm:w-14 sm:h-14 rounded-xl bg-white shadow-sm border border-[#001F3F]/10"
                   aria-hidden
@@ -57,19 +79,16 @@ export default function KeyFeatures() {
                     {icons[index % icons.length]}
                   </span>
                 </div>
-
-                {/* 8. Matched font size (text-base for mobile) */}
                 <h3 className="text-base sm:text-xl font-semibold text-[#001F3F]">
                   {feature.title}
                 </h3>
-                {/* 9. Matched font size (text-xs for mobile) and leading */}
                 <p className="text-xs sm:text-base text-[#001F3F]/90 leading-tight sm:leading-relaxed">
                   {feature.desc}
                 </p>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

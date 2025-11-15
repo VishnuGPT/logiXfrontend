@@ -7,73 +7,9 @@ import ftlImage from "../../assets/ftl.png";
 import packersImage from "../../assets/packers.png";
 import ptlImage from "../../assets/ptl.png";
 
-const ServiceCard = memo(function ServiceCard({ service, onSelect }) {
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      onSelect(service.id);
-    }
-  };
-
-  return (
-    <motion.article
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ translateY: -6 }}
-      transition={{ type: "spring", stiffness: 160, damping: 18 }}
-      className="bg-white p-8 rounded-2xl border border-[#001F3F]/10 shadow-sm hover:shadow-lg transition-transform duration-300"
-      tabIndex={0}
-      role="button"
-      aria-labelledby={`svc-${service.id}`}
-      onKeyDown={handleKeyDown}
-      onClick={() => onSelect(service.id)}
-    >
-      <div className="flex items-start gap-6">
-        <div
-          className="w-20 h-20 rounded-xl bg-white shadow-sm border border-[#001F3F]/10 overflow-hidden"
-          aria-hidden
-        >
-          <img
-            src={service.image}
-            alt={service.alt}
-            loading="lazy"
-            decoding="async"
-            className="w-full h-full object-cover"
-          />
-        </div>
-
-        <div className="flex-1 min-w-0">
-          <h3
-            id={`svc-${service.id}`}
-            className="text-2xl font-semibold text-[#001F3F] truncate"
-            title={service.title}
-          >
-            {service.title}
-          </h3>
-
-          <p className="text-[#001F3F]/80 mt-3 leading-relaxed">
-            {service.desc}
-          </p>
-
-          <div className="pt-4">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(service.id);
-              }}
-              className="px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 hover:opacity-95"
-              style={{ backgroundColor: service.color }}
-              aria-label={service.btnText}
-            >
-              {service.btnText}
-            </button>
-          </div>
-        </div>
-      </div>
-    </motion.article>
-  );
-});
+// Note: Your memoized ServiceCard component was removed in the last file,
+// but the desktop version had it. I am using the desktop version as it
+// was more advanced.
 
 export default function Services() {
   const navigate = useNavigate();
@@ -105,7 +41,7 @@ export default function Services() {
       color: "#F39C12",
     },
     {
-      id: "packers",
+      id: "packers-movers",
       image: packersImage,
       alt: t("packers.alt", { defaultValue: "Packers and movers" }),
       title: t("packers.title", { defaultValue: "Packers & Movers" }),
@@ -120,7 +56,7 @@ export default function Services() {
 
   const handleSelect = useCallback(
     (serviceId) => {
-      navigate(`/services/form?service=${encodeURIComponent(serviceId)}`);
+      navigate(`/services/${encodeURIComponent(serviceId)}`);
     },
     [navigate]
   );
@@ -143,7 +79,7 @@ export default function Services() {
           </p>
         </div>
 
-        {/* Mobile version reverted to simpler layout */}
+        {/* Mobile version */}
         <div className="sm:hidden flex flex-col gap-4">
           {services.map((service) => (
             <article
@@ -174,7 +110,7 @@ export default function Services() {
                   </p>
 
                   <button
-                    onClick={() => navigate(`/services/form?service=${service.id}`)}
+                    onClick={() => navigate(`/services/${service.id}`)}
                     className="mt-3 w-full text-sm font-semibold py-2 rounded-full text-white"
                     style={{ backgroundColor: service.color }}
                     aria-label={service.btnText}
@@ -187,69 +123,65 @@ export default function Services() {
           ))}
         </div>
 
-{/* Desktop / tablet: enhanced service cards */}
-<div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
-  {services.map((s) => (
-    <motion.article
-      key={s.id}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{
-        y: -8,
-        boxShadow: `0 10px 25px -8px ${s.color}40`,
-        borderColor: `${s.color}60`,
-      }}
-      transition={{ type: "spring", stiffness: 140, damping: 15 }}
-      className="group bg-white p-8 rounded-3xl border border-[#001F3F]/10 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#001F3F]/40"
-      role="button"
-      tabIndex={0}
-      onClick={() => handleSelect(s.id)}
-    >
-      <div className="flex flex-col items-center text-center h-full">
-        {/* Image with gradient border */}
-        <div
-          className="relative w-24 h-24 rounded-2xl overflow-hidden mb-6 border border-transparent bg-gradient-to-br from-[#001F3F]/10 to-transparent group-hover:from-[#001F3F]/20"
-          aria-hidden
-        >
-          <img
-            src={s.image}
-            alt={s.alt}
-            className="w-full h-full object-contain rounded-2xl transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-            decoding="async"
-          />
+        {/* Desktop / tablet: enhanced service cards */}
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+          {services.map((s) => (
+            <motion.article
+              key={s.id}
+              initial={{ opacity: 0, y: 20 }}
+              // Animate when it scrolls into view
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              whileHover={{
+                y: -8,
+                boxShadow: `0 10px 25px -8px ${s.color}40`,
+                borderColor: `${s.color}60`,
+              }}
+              transition={{ type: "spring", stiffness: 140, damping: 15 }}
+              className="group bg-white p-8 rounded-3xl border border-[#001F3F]/10 shadow-sm hover:shadow-xl transition-all duration-300 cursor-pointer focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-[#001F3F]/40"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleSelect(s.id)}
+            >
+              <div className="flex flex-col items-center text-center h-full">
+                {/* ... card content ... */}
+                <div
+                  className="relative w-24 h-24 rounded-2xl overflow-hidden mb-6 border border-transparent bg-gradient-to-br from-[#001F3F]/10 to-transparent group-hover:from-[#001F3F]/20"
+                  aria-hidden
+                >
+                  <img
+                    src={s.image}
+                    alt={s.alt}
+                    className="w-full h-full object-contain rounded-2xl transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <h3
+                  id={`svc-${s.id}`}
+                  className="text-xl font-bold text-[#001F3F] mb-3 truncate"
+                  title={s.title}
+                >
+                  {s.title}
+                </h3>
+                <p className="text-[#001F3F]/75 text-sm leading-relaxed mb-6 line-clamp-3">
+                  {s.desc}
+                </p>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelect(s.id);
+                  }}
+                  className="mt-auto px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 group-hover:scale-105"
+                  style={{ backgroundColor: s.color }}
+                  aria-label={s.btnText}
+                >
+                  {s.btnText}
+                </button>
+              </div>
+            </motion.article>
+          ))}
         </div>
-
-        {/* Title */}
-        <h3
-          id={`svc-${s.id}`}
-          className="text-xl font-bold text-[#001F3F] mb-3 truncate"
-          title={s.title}
-        >
-          {s.title}
-        </h3>
-
-        {/* Description */}
-        <p className="text-[#001F3F]/75 text-sm leading-relaxed mb-6 line-clamp-3">
-          {s.desc}
-        </p>
-
-        {/* Button */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleSelect(s.id);
-          }}
-          className="mt-auto px-6 py-2 rounded-full font-semibold text-white transition-all duration-300 group-hover:scale-105"
-          style={{ backgroundColor: s.color }}
-          aria-label={s.btnText}
-        >
-          {s.btnText}
-        </button>
-      </div>
-    </motion.article>
-  ))}
-</div>
       </div>
     </section>
   );

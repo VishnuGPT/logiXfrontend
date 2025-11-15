@@ -6,7 +6,7 @@ import { Toaster } from 'react-hot-toast';
 // --- UI Components ---
 import Navbar from './components/ui/NavBar';
 import Footer from './components/ui/Footer';
-
+import ScrollToTop from './components/ScrollToTop';
 // --- Page Components ---
 import LandingPage from './pages/Landing_page';
 import AboutUs from './pages/About_us';
@@ -26,6 +26,9 @@ import Consignment from './pages/dashboard/Consignment';
 import AvailableTransporters from './pages/Transporter_list';
 import VehicleRegistration from './pages/Vehicle_registration';
 import DriverRegistration from './pages/Driver_registration';
+
+//applications
+import PackersMoversForm from './pages/PackersMoversForm';
 
 // --- Layouts ---
 const MainLayout = () => (
@@ -50,6 +53,7 @@ function App() {
   return (
     <>
       <Router>
+        <ScrollToTop />
         <Routes>
           {/* --- Public-facing pages (with Navbar + Footer) --- */}
           <Route element={<MainLayout />}>
@@ -65,7 +69,8 @@ function App() {
 
           {/* --- Full-screen pages (no Navbar/Footer) --- */}
           <Route element={<FullPageLayout />}>
-            <Route path="/create-shipment" element={<CreateShipment />} />
+            <Route path="/services/ftl" element={<CreateShipment />} />
+            <Route path="/services/packers-movers" element={<PackersMoversForm />} />
 
             {/* Auth Routes */}
             <Route path="/admin-sign-in" element={<AdminSignIn />} />
