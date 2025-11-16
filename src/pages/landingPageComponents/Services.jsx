@@ -11,7 +11,7 @@ import ptlImage from "../../assets/ptl.png";
 // but the desktop version had it. I am using the desktop version as it
 // was more advanced.
 
-export default function Services() {
+export default function Services({onOpenCallModal}) {
   const navigate = useNavigate();
   const { t } = useTranslation("services");
 
@@ -56,9 +56,16 @@ export default function Services() {
 
   const handleSelect = useCallback(
     (serviceId) => {
-      navigate(`/services/${encodeURIComponent(serviceId)}`);
+      if(serviceId=="ptl"){
+        console.log("PTL selected - opening call modal");
+        onOpenCallModal();
+        return;
+      }
+      else{
+        navigate(`/services/${encodeURIComponent(serviceId)}`);
+      }
     },
-    [navigate]
+    [navigate, onOpenCallModal]
   );
 
   return (
@@ -110,7 +117,14 @@ export default function Services() {
                   </p>
 
                   <button
-                    onClick={() => navigate(`/services/${service.id}`)}
+                  
+                    onClick={() =>{
+                      if(service.id==="ptl"){
+                        console.log("PTL selected - opening call modal");
+                        onOpenCallModal();
+                        return;
+                      }
+                       navigate(`/services/${service.id}`)}}
                     className="mt-3 w-full text-sm font-semibold py-2 rounded-full text-white"
                     style={{ backgroundColor: service.color }}
                     aria-label={service.btnText}

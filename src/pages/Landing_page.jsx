@@ -33,17 +33,17 @@ export default function LandingPage() {
   return (
     <div>
       {/* Pass the openModal function down to the Hero component */}
-      <Hero 
-        scrollToComponent={scrollToComponent} 
-        onOpenCallModal={openModal} 
+      <Hero
+        scrollToComponent={scrollToComponent}
+        onOpenCallModal={openModal}
       />
 
       {/* Services section (target for "Ship Order Now") */}
       <div ref={targetRef}>
-        <Services />
+        <Services onOpenCallModal={openModal} />
       </div>
 
-      <KeyFeatures />
+      <KeyFeatures/>
       <CitiesChart />
       <ContactCTASection scrollToComponent={scrollToComponent} />
       <FAQ />
