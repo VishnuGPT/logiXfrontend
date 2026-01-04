@@ -39,7 +39,7 @@ export default function SignInPage() {
     };
 
     const endpoint = userType === 'Transporter'
-      ? `${import.meta.env.VITE_API_URL}/api/transporters/login`
+      ? `${import.meta.env.VITE_API_URL}/api/transporter/login`
       : `${import.meta.env.VITE_API_URL}/api/shipper/login`;
 
     try {
@@ -49,8 +49,8 @@ export default function SignInPage() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-
       if (res.ok) {
+        console.log('Login successful:', data);
         localStorage.setItem('token', data.token);
         const dashboardPath = userType === 'Shipper' ? '/client-dashboard' : '/transporter-dashboard';
         navigate(dashboardPath);
@@ -58,8 +58,7 @@ export default function SignInPage() {
         setError(data.message || 'Invalid credentials. Please try again.');
       }
     } catch (err) {
-      navigate('/client-dashboard');
-      console.error('Login error:', err);
+      console.log('Login error:', err);
       setError('An unexpected error occurred. Please try again later.');
     } finally {
       setIsLoading(false);

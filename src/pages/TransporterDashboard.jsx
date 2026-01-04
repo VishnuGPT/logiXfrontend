@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Menu, X, Plus, Edit, DollarSign, LogOut, Bell, Building, Mail, Phone, Check, Calendar, Scale, MapPin, Package, Ruler, Truck, Users, Airplay, Loader2, Image as ImageIcon, FileText, Clock } from 'lucide-react';
+import { User, Menu, X, Plus, Edit, DollarSign, LogOut, Bell, Building, Mail, Phone, Check, Calendar, Scale, MapPin, Package, Ruler, Truck, Users, Airplay, Loader2, Image as ImageIcon, FileText, Clock, HelpCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import LoaderOne from "@/components/ui/LoadingScreen";
 import axios from 'axios';
@@ -12,6 +12,7 @@ import { OffersPage } from '../components/OfferRequests';
 import { toast } from 'react-hot-toast';
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmedRequests } from '@/components/ConfirmedRequests';
+import TransporterProfile from '@/components/TransporterProfile';
 
 const ProfileQuickView = ({ user }) => (
   <div className="flex items-center gap-3">
@@ -25,25 +26,17 @@ const ProfileQuickView = ({ user }) => (
   </div>
 );
 
-const DashboardOverview = ({ user, requests, offerCount, onViewOffers }) => {
-  console.log(offerCount);
-  const activeRequests = requests.filter(
-    req => req.status !== 'COMPLETED' && req.status !== 'REJECTED'
-  ).length;
-  const completedRequests = requests.filter(req => req.status == 'COMPLETED').length;
-  const modificationRequests = requests.filter(req => req.status == 'MODIFICATION_REQUESTED').length;
-
+const DashboardOverview = ({ user}) => {
+  console.log(user);
   const stats = [
-    { label: 'Active Shipments', value: activeRequests, color: 'bg-blue-500', icon: <Plus size={20} /> },
-    { label: 'Completed', value: completedRequests, color: 'bg-green-500', icon: <DollarSign size={20} /> },
-    { label: 'Modifications', value: modificationRequests, color: 'bg-yellow-500', icon: <Edit size={20} /> },
+    { label: 'Active Shipments', value: 0, color: 'bg-blue-500', icon: <Plus size={20} /> },
+    { label: 'Completed', value: 0, color: 'bg-green-500', icon: <DollarSign size={20} /> },
+    { label: 'Modifications', value: 0, color: 'bg-yellow-500', icon: <Edit size={20} /> },
     {
       label: 'New Offers',
-      value: offerCount,
+      value: 0,
       color: 'bg-purple-500',
       icon: <Bell size={20} />,
-      clickable: true,
-      onClick: onViewOffers
     }
   ];
 
@@ -70,7 +63,7 @@ const DashboardOverview = ({ user, requests, offerCount, onViewOffers }) => {
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={16} className="text-blue-600" />
-                <span className="text-sm text-slate-700">{user.ownerContactNumber || 'Not set'}</span>
+                <span className="text-sm text-slate-700">{user.phoneNumber || 'Not set'}</span>
               </div>
             </div>
           </div>
@@ -108,51 +101,6 @@ const DashboardOverview = ({ user, requests, offerCount, onViewOffers }) => {
       {/* Recent Activity */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
         <h3 className="text-lg font-semibold text-slate-800 mb-4">Recent Activity</h3>
-        {requests.length > 0 ? (
-          <div className="space-y-3">
-            {[...requests]
-              .sort((a, b) => new Date(b.created_at) - new Date(a.created_at)) // sort by created_at DESC
-              .slice(0, 3)
-              .map((request, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
-                >
-                  <div>
-                    <p className="font-medium text-slate-800">
-                      {request.pickupAddressLine2} → {request.dropAddressLine2}
-                    </p>
-                    <p className="text-sm text-slate-500">
-                      Status:{" "}
-                      <span className="capitalize">
-                        {request.status?.toLowerCase()}
-                      </span>
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {new Date(request.created_at).toLocaleString()}
-                    </p>
-                  </div>
-                  <div
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${request.status === "ACTIVE"
-                      ? "bg-blue-100 text-blue-700"
-                      : request.status === "DELIVERED"
-                        ? "bg-green-100 text-green-700"
-                        : request.status === "OFFER_SENT"
-                          ? "bg-purple-100 text-purple-700"
-                          : "bg-gray-100 text-gray-700"
-                      }`}
-                  >
-                    {request.status}
-                  </div>
-                </div>
-              ))}
-            {requests.length > 3 && (
-              <p className="text-sm text-slate-500 text-center pt-2">
-                And {requests.length - 3} more shipments...
-              </p>
-            )}
-          </div>
-        ) : (
           <div className="text-center py-8">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Plus size={24} className="text-slate-400" />
@@ -162,7 +110,6 @@ const DashboardOverview = ({ user, requests, offerCount, onViewOffers }) => {
               Create your first shipment request to get started
             </p>
           </div>
-        )}
       </div>
 
     </div>
@@ -172,6 +119,7 @@ const DashboardOverview = ({ user, requests, offerCount, onViewOffers }) => {
 const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLogout,setRefreshCounter }) => {
   const navItems = [
     { name: 'Dashboard', icon: <User size={20} /> },
+    { name: 'Profile', icon: <Building size={20} /> },
     { name: 'Requests', icon: <Plus size={20} /> },
     { name: 'Offers', icon: <DollarSign size={20} /> },
     { name: 'Modifications', icon: <Edit size={20} /> },
@@ -242,6 +190,7 @@ const DashboardHeader = ({ activePage, setSidebarOpen, onNewRequestClick, offerC
   const getPageTitle = (page) => {
     switch (page) {
       case 'Dashboard': return 'Dashboard';
+      case 'Profile': return 'Profile Settings';
       case 'Requests': return 'Shipment Requests';
       case 'Offers': return 'Offers Received';
       case 'Modifications': return 'Modification Requests';
@@ -273,17 +222,9 @@ const DashboardHeader = ({ activePage, setSidebarOpen, onNewRequestClick, offerC
         {/* Notification Bell for Dashboard */}
         {activePage === 'Dashboard' && (
           <div className="relative">
-            <button
-              onClick={onNotificationClick}
-              className="relative p-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
-            >
-              <Bell size={22} />
-              {offerCount > 0 && (
-                <div className="absolute top-0 right-0 -mt-1 -mr-1 flex items-center justify-center w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full border-2 border-white">
-                  {offerCount > 9 ? '9+' : offerCount}
-                </div>
-              )}
-            </button>
+            <Button variant="ghost"  className="relative">
+              <HelpCircle size={18} className="text-slate-600" onClick={onNotificationClick} />
+              Support</Button>
           </div>
         )}
 
@@ -302,16 +243,16 @@ const DashboardHeader = ({ activePage, setSidebarOpen, onNewRequestClick, offerC
   );
 };
 
-export default function ShipperDashboard() {
+export default function TransporterDashboard() {
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState("Dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [shipperData, setShipperData] = useState({
+  const [verified, setVerified] = useState(false);
+  const [transporterData, setTransporterData] = useState({
     user: { name: "", company: "" },
     requests: [],
   });
   const[refreshCounter,setRefreshCounter]=useState(0);
-
 
 
   const navigate = useNavigate();
@@ -328,35 +269,22 @@ export default function ShipperDashboard() {
 
         const config = { headers: { authorization: `Bearer ${token}` } };
 
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/shipper/verify`,
-          config
+        const res = await axios.post(
+          `${import.meta.env.VITE_API_URL}/api/transporter/profile`,{},
+          config  
         );
 
         if (res.status !== 200) {
           navigate("/sign-in");
           return;
         }
-        setShipperData((prev) => ({
+        console.log("Transporter Profile Data:", res.data);
+        setTransporterData((prev) => ({
           ...prev,
-          user: res.data.shipperProfile,
+          user: res.data.transporter,
         }));
-
-        const requestsRes = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/shipment/get-all-for-shipper`,
-          config
-        );
-
-        setShipperData((prev) => ({
-          ...prev,
-          requests: requestsRes.data.shipments || [],
-        }));
-
       } catch (error) {
         console.error("Auth or data fetch error:", error);
-        if (error.response?.status === 401) {
-          navigate("/sign-in");
-        }
       } finally {
         setLoading(false);
       }
@@ -376,77 +304,6 @@ export default function ShipperDashboard() {
       toast.error('Logout failed. Please try again.');
     }
   };
-
-  // Notification Logic
-  const offerNotifications = shipperData.requests
-    .filter(request => request.status === 'OFFER_SENT')
-    .length;
-
-  const handleNotificationClick = () => {
-    const offersReceived = shipperData.requests
-      .filter(request => request.status === 'OFFER_SENT')
-      .map(request => ({
-        text: `Offer received for shipment: ${request.pickupAddressLine2} → ${request.dropAddressLine2}`,
-        shipmentId: request.id
-      }));
-
-    if (offersReceived.length > 0) {
-      toast(
-        (t) => (
-          <div className="w-full">
-            <div className="flex justify-between items-center mb-2">
-              <h4 className="font-semibold text-slate-800">New Offers</h4>
-              <button onClick={() => toast.dismiss(t.id)} className="text-slate-400 hover:text-slate-600">
-                <X size={16} />
-              </button>
-            </div>
-            <div className="space-y-2">
-              {offersReceived.map((offer, index) => (
-                <div
-                  key={index}
-                  onClick={() => {
-                    setActiveView('Offers');
-                    toast.dismiss(t.id);
-                  }}
-                  className="cursor-pointer hover:bg-blue-50 p-2 -m-2 rounded-md transition-colors text-slate-600 text-sm"
-                >
-                  <p>• {offer.text}</p>
-                </div>
-              ))}
-            </div>
-            <div className="text-xs text-slate-500 mt-3 text-center border-t border-slate-200 pt-2">
-              Click any notification to view all offers.
-            </div>
-          </div>
-        ),
-        {
-          position: 'top-right',
-          duration: 8000,
-          style: {
-            marginTop: '10px',
-            backgroundColor: 'white',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
-            maxWidth: '420px',
-            padding: '16px',
-            borderRadius: '12px'
-          }
-        }
-      );
-    } else {
-      toast("No new offers available.", {
-        icon: '👍',
-        position: 'top-right',
-        style: {
-          marginTop: '10px',
-          backgroundColor: 'white',
-          color: '#1e293b',
-          border: '1px solid #e2e8f0',
-        },
-      });
-    }
-  };
-
   // Loading State
   if (loading) {
     return (
@@ -462,12 +319,11 @@ export default function ShipperDashboard() {
       case 'Dashboard':
         return (
           <DashboardOverview
-            user={shipperData.user}
-            requests={shipperData.requests}
-            offerCount={offerNotifications}
-            onViewOffers={() => setActiveView('Offers')}
+            user={transporterData.user}
           />
         );
+      case 'Profile':
+        return <TransporterProfile user={transporterData.user} />;
       case 'Requests':
         return <ShipmentRequestsPage />;
       case 'Modifications':
@@ -495,7 +351,6 @@ export default function ShipperDashboard() {
     }
   };
 
-  // Final Render
   return (
     <div className="flex bg-slate-50 font-sans min-h-screen text-slate-800">
       <Sidebar
@@ -511,9 +366,7 @@ export default function ShipperDashboard() {
           activePage={activeView}
           setSidebarOpen={setSidebarOpen}
           onNewRequestClick={() => setActiveView('New Request')}
-          offerCount={offerNotifications}
-          onNotificationClick={handleNotificationClick}
-          user={shipperData.user}
+          user={transporterData.user}
         />
         <AnimatePresence mode="wait">
           <motion.div

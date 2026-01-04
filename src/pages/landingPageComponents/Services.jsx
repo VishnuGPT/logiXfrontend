@@ -6,12 +6,9 @@ import { motion } from "framer-motion";
 import ftlImage from "../../assets/ftl.png";
 import packersImage from "../../assets/packers.png";
 import ptlImage from "../../assets/ptl.png";
+import courierImage from "../../assets/courier.jpg"; // dummy, replace later
 
-// Note: Your memoized ServiceCard component was removed in the last file,
-// but the desktop version had it. I am using the desktop version as it
-// was more advanced.
-
-export default function Services({onOpenCallModal}) {
+export default function Services({ onOpenCallModal }) {
   const navigate = useNavigate();
   const { t } = useTranslation("services");
 
@@ -52,16 +49,29 @@ export default function Services({onOpenCallModal}) {
       btnText: t("packers.btn", { defaultValue: "Get Packers Quote" }),
       color: "#0091D5",
     },
+    {
+      id: "courier",
+      image: courierImage,
+      alt: t("courier.alt", { defaultValue: "Courier delivery service" }),
+      title: t("courier.title", { defaultValue: "Courier Services" }),
+      desc: t("courier.desc", {
+        defaultValue:
+          "Fast and reliable document & parcel delivery for businesses and individuals.",
+      }),
+      btnText: t("courier.btn", { defaultValue: "Book Courier" }),
+      color: "#2ECC71",
+    },
+
   ];
 
   const handleSelect = useCallback(
     (serviceId) => {
-      if(serviceId=="ptl"){
-        console.log("PTL selected - opening call modal");
+      if (serviceId == "ptl" || serviceId == "courier") {
+        console.log("PTL or Courier selected - opening call modal");
         onOpenCallModal();
         return;
       }
-      else{
+      else {
         navigate(`/services/${encodeURIComponent(serviceId)}`);
       }
     },
@@ -117,14 +127,15 @@ export default function Services({onOpenCallModal}) {
                   </p>
 
                   <button
-                  
-                    onClick={() =>{
-                      if(service.id==="ptl"){
+
+                    onClick={() => {
+                      if (service.id === "ptl") {
                         console.log("PTL selected - opening call modal");
                         onOpenCallModal();
                         return;
                       }
-                       navigate(`/services/${service.id}`)}}
+                      navigate(`/services/${service.id}`)
+                    }}
                     className="mt-3 w-full text-sm font-semibold py-2 rounded-full text-white"
                     style={{ backgroundColor: service.color }}
                     aria-label={service.btnText}
@@ -138,7 +149,7 @@ export default function Services({onOpenCallModal}) {
         </div>
 
         {/* Desktop / tablet: enhanced service cards */}
-        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
+        <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-10">
           {services.map((s) => (
             <motion.article
               key={s.id}

@@ -20,8 +20,7 @@ import CreateShipment from './components/CreateShipment'
 
 import CarrierRegistration from './pages/signup/transporter_registration';
 
-import TransporterDashboard from './pages/TraFix';
-import ClientDashboard from './pages/Client_dashboard';
+import TransporterDashboard from './pages/TransporterDashboard';
 import Consignment from './pages/dashboard/Consignment';
 import AvailableTransporters from './pages/Transporter_list';
 import VehicleRegistration from './pages/Vehicle_registration';
@@ -85,7 +84,6 @@ function App() {
             {/* Dashboard Routes */}
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/transporter-dashboard" element={<TransporterDashboard />} />
-            <Route path="/client-dashboard" element={<ClientDashboard />} />
             <Route path="/consignment" element={<Consignment />} />
             <Route path="/available-transporter" element={<AvailableTransporters />} />
           </Route>

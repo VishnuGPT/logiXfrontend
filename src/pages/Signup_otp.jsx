@@ -116,7 +116,6 @@ export default function SignupFormPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [step, setStep] = useState(1);
-  const [role, setRole] = useState('shipper');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [gst, setGst] = useState('');
@@ -128,8 +127,7 @@ export default function SignupFormPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [companyName, setCompanyName] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
-  const [ownerName, setOwnerName] = useState('');
-  const [ownerContactNumber, setOwnerContactNumber] = useState('');
+  const [designation, setDesignation] = useState('');
 
   const navigate = useNavigate();
 
@@ -151,7 +149,6 @@ export default function SignupFormPage() {
   const validateForm = () => {
     if (!companyName) return 'Company Name is required';
     if (!/^\d{10}$/.test(phone)) return 'Phone number must be 10 digits';
-    if (!/^\d{10}$/.test(ownerContactNumber)) return 'Owner Contact must be 10 digits';
     if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(gst))
       return 'Invalid GST format';
     if (password.length < 8) return 'Password must be at least 8 characters';
@@ -159,6 +156,7 @@ export default function SignupFormPage() {
   };
 
   const handleSubmit = async (e) => {
+    console.log('Submitting registration form...');
     e.preventDefault();
     const validationError = validateForm();
     if (validationError) {
@@ -166,6 +164,8 @@ export default function SignupFormPage() {
       return;
     }
     if (!emailVerifiedToken) {
+      console.log('Registration success:');
+      navigate('/sign-in');
       setError("Please verify your email before proceeding.");
       return;
     }
@@ -175,20 +175,19 @@ export default function SignupFormPage() {
 
     try {
       const res = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/shipper/register`,
+        `${import.meta.env.VITE_API_URL}/api/transporter/register`,
         {
-          ownerName,
-          ownerContactNumber,
           email,
           phoneNumber: phone,
           password,
           companyName,
           companyAddress,
           gstNumber: gst,
+          designation,
         },
         {
           headers: {
-            'emailverificationtoken': emailVerifiedToken
+            'authorization':`Bearer ${emailVerifiedToken}`
           }
         }
       );
@@ -212,8 +211,7 @@ export default function SignupFormPage() {
       return;
     }
     setIsResending(true);
-    axios
-      .post(`${import.meta.env.VITE_API_URL}/api/validate/send-email-otp`, { email })
+    axios.post(`${import.meta.env.VITE_API_URL}/api/transporter/send-otp`, { email })
       .then((response) => {
         setShowOtp(true);
         setOtpVerified(false);
@@ -230,11 +228,11 @@ export default function SignupFormPage() {
   const handleVerifyOtp = (otp) => {
     setError('');
     setIsVerifying(true);
-    axios
-      .post(`${import.meta.env.VITE_API_URL}/api/validate/verify-email-otp`, { email, otp })
+    axios.post(`${import.meta.env.VITE_API_URL}/api/transporter/verify-otp`, { email, otp })
       .then((res) => {
         setOtpVerified(true);
         setEmailVerifiedToken(res.data.token);
+        
       })
       .catch((err) => {
         setError(err.response?.data?.message || 'Invalid OTP. Please try again.');
@@ -252,7 +250,7 @@ export default function SignupFormPage() {
   return (
     <div
       className={`min-h-screen flex flex-col md:flex-row items-center justify-center p-6 transition-colors duration-500 
-      ${role === 'shipper' ? 'bg-blue-50' : 'bg-green-50'}`}
+     bg-green-50`}
     >
       <LoaderOne show={isLoading} />
 
@@ -274,34 +272,11 @@ export default function SignupFormPage() {
       </div>
 
       <div className="w-full max-w-lg bg-white rounded-lg p-8 border border-black/5">
-        <ProgressIndicator currentStep={step} totalSteps={3} />
+        <ProgressIndicator currentStep={step} totalSteps={2} />
         <AnimatePresence mode="wait">
           <motion.div key={step} {...formAnimation}>
-            {step === 1 && (
-              <div className="text-center">
-                <h2 className="text-2xl font-bold text-headings mb-4">
-                  Are you a Shipper or a Transporter?
-                </h2>
-                <p className="text-text/70 mb-8">Select your role to get started.</p>
-                <div className="flex items-center justify-center gap-4 my-6">
-                  <span className={`font-medium transition ${role === 'shipper' ? 'text-accent-cta' : 'text-text/60'}`}>
-                    Shipper
-                  </span>
-                  <Switch
-                    checked={role === 'transporter'}
-                    onCheckedChange={() => setRole(role === 'shipper' ? 'transporter' : 'shipper')}
-                  />
-                  <span className={`font-medium transition ${role === 'transporter' ? 'text-interactive' : 'text-text/60'}`}>
-                    Transporter
-                  </span>
-                </div>
-                <Button onClick={handleNextStep} className="w-full mt-8 font-semibold bg-accent-cta cursor-pointer">
-                  Next
-                </Button>
-              </div>
-            )}
 
-            {step === 2 && (
+            {step === 1 && (
               <div className="space-y-5">
                 <h2 className="text-2xl font-bold text-center text-headings">
                   Verify Your EMAIL
@@ -351,7 +326,7 @@ export default function SignupFormPage() {
               </div>
             )}
 
-            {step === 3 && (
+            {step === 2 && (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <h2 className="text-2xl font-bold text-center text-headings">
                   Final Details
@@ -384,35 +359,6 @@ export default function SignupFormPage() {
                     required
                   />
                 </div>
-
-                <div>
-                  <label htmlFor="ownerName" className="block mb-1.5 text-sm font-medium text-text">
-                    Owner Name
-                  </label>
-                  <Input
-                    id="ownerName"
-                    type="text"
-                    placeholder="Enter owner name"
-                    value={ownerName}
-                    onChange={(e) => setOwnerName(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="ownerContactNumber" className="block mb-1.5 text-sm font-medium text-text">
-                    Owner Contact Number
-                  </label>
-                  <Input
-                    id="ownerContactNumber"
-                    type="tel"
-                    placeholder="Enter owner contact number"
-                    value={ownerContactNumber}
-                    onChange={(e) => setOwnerContactNumber(e.target.value)}
-                    required
-                  />
-                </div>
-
                 <div>
                   <label htmlFor="phone" className="block mb-1.5 text-sm font-medium text-text">
                     Phone Number
@@ -441,6 +387,20 @@ export default function SignupFormPage() {
                   />
                   <small className="text-xs text-text/60">Format: 11AAAAA1111A1Z1</small>
                 </div>
+                  <div>
+                  <label htmlFor="designation" className="block mb-1.5 text-sm font-medium text-text">
+                    designation
+                  </label>
+                  <Input
+                    id="designation"
+                    type="text"
+                    placeholder="Enter designation"
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                    required
+                  />
+                </div>
+
 
                 <div>
                   <label htmlFor="password" className="block mb-1.5 text-sm font-medium text-text">
