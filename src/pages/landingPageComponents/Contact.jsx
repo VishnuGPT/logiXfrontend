@@ -9,7 +9,6 @@ export default function ContactCTASection({ scrollToComponent }) {
   const contactDetails = [
     {
       id: "mail",
-      // 1. Applied brand color and responsive size
       icon: (
         <Mail
           className="h-8 w-8 sm:h-6 sm:w-6 text-[#0091D5]"
@@ -17,7 +16,8 @@ export default function ContactCTASection({ scrollToComponent }) {
         />
       ),
       text: t("details.email", { defaultValue: "contact@logixjunction.com" }),
-      href: "mailto:contact@logixjunction.com",
+      // Redirects directly to Gmail's compose screen
+      href: "https://mail.google.com/mail/?view=cm&fs=1&to=contact@logixjunction.com",
     },
     {
       id: "phone",

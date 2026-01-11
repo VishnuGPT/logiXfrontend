@@ -1,6 +1,6 @@
 import React from "react";
 
-export default function AboutUs() {
+export default function OurStory() {
   return (
     <section className="bg-background py-15 px-6">
       <div className="flex justify-center items-center">
@@ -8,7 +8,7 @@ export default function AboutUs() {
         {/* Left Text Section */}
         <div className="space-y-6">
           <h2 className="text-4xl md:text-5xl font-extrabold text-headings">
-            About Us
+            Our Story
           </h2>
 
           <div className="space-y-4 text-lg text-text/80 max-w-2xl leading-relaxed">

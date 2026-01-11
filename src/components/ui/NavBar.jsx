@@ -7,7 +7,7 @@ import i18n from "../../i18n";
 
 const navLinks = [
   { label: "Home", href: "/" },
-  { label: "Our Story", href: "/about-us" },
+  { label: "Our Story", href: "/our-story" },
   { label: "Join Us", href: "/join-us" },
 ];
 

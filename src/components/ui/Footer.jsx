@@ -13,7 +13,6 @@ const footerLinks = [
         links: [
             { label: 'About Us', href: '/about-us' },
             { label: 'Careers', href: '/careers' },
-            { label: 'News', href: '/news' },
             { label: 'Admin Access', href: '/admin-sign-in' }
         ],
     },
@@ -36,9 +35,9 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-    { icon: <Twitter className="h-5 w-5" />, href: '#' },
-    { icon: <Linkedin className="h-5 w-5" />, href: '#' },
-    { icon: <Instagram className="h-5 w-5" />, href: '#' },
+    { icon: <Twitter className="h-5 w-5" />, href: 'https://x.com/LogiXjunction' },
+    { icon: <Linkedin className="h-5 w-5" />, href: 'https://www.linkedin.com/company/logixjunction' },
+    { icon: <Instagram className="h-5 w-5" />, href: 'https://www.instagram.com/logixjunction' },
 ];
 
 

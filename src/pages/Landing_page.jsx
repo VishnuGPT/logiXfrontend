@@ -43,11 +43,9 @@ export default function LandingPage() {
         <Services onOpenCallModal={openModal} />
       </div>
 
-      <KeyFeatures/>
+      {/* <KeyFeatures/> */}
       <CitiesChart />
       <ContactCTASection scrollToComponent={scrollToComponent} />
-      <FAQ />
-
       {/* Render the Modal with AnimatePresence for animations */}
       <AnimatePresence>
         {isModalOpen && (
