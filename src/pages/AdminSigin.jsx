@@ -38,7 +38,7 @@ export default function AdminSignIn() {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/admin/signin`,
+        `${import.meta.env.VITE_API_URL}/api/admin/sign-in`,
         {
           email: formData.email,
           password: formData.password,
