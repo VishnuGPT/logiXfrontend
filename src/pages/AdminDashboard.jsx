@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Menu, FileText, Package, Edit3, CheckCircle, LogOut, Truck, MapPin } from 'lucide-react';
+import { User, Menu, FileText, Package, Edit3, CheckCircle, LogOut, Truck, MapPin, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Assuming you have this from ShadCN UI
 import LoaderOne from "@/components/ui/LoadingScreen";
 import axios from 'axios';
@@ -9,6 +9,8 @@ import {AdminRequestsRequests} from '../components/AdminShipmentRequests';
 import {AdminModificationRequests} from '../components/AdminModificationRequests'
 import { AdminConfirmedRequests } from '@/components/AdminConfirmedShipments';
 import { AdminOfferedShipments } from '@/components/AdminOfferedShipments';
+import AdminTransporters from '@/components/AdminTransporter';
+import AdminDrivers from '@/components/AdminDrivers';
 // --- HELPER & DASHBOARD PAGE COMPONENTS ---
 
 const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => {
@@ -16,7 +18,9 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
   const navItems = [
     { name: 'Profile', icon: <User size={18} /> },
     { name: 'Shipment Requests', icon: <FileText size={18} /> },
+    {name:"Transporter",icon:<Truck size={18}/>},
     { name: 'Offered Shipments', icon: <Package size={18} /> },
+    {name:"Drivers",icon:<UserCircle size={18}/>},
     { name: 'Modification Requests', icon: <Edit3 size={18} /> },
     { name: 'Confirmed Requests', icon: <CheckCircle size={18} /> },
   ];
@@ -160,6 +164,11 @@ export default function AdminDashboard() {
         return <AdminModificationRequests />;
       case 'Confirmed Requests':
         return <AdminConfirmedRequests />;
+      case 'Transporter':
+        return <AdminTransporters/>;
+      case "Drivers":
+        return <AdminDrivers/>
+      
       default:
         return <AdminShipmentRequests />;
     }
