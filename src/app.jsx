@@ -30,6 +30,7 @@ import DriverRegistration from './pages/Driver_registration';
 //applications
 import PackersMoversForm from './pages/PackersMoversForm';
 import OurStory from './pages/OurStory';
+import CompleteProfilePage from './components/CompleteProfile';
 
 // --- Layouts ---
 const MainLayout = () => (
@@ -79,6 +80,7 @@ function App() {
             <Route path="/admin-sign-in" element={<AdminSignIn />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignupFormPage />} />
+            <Route path='complete-profile' element={<CompleteProfilePage/>}/>
 
             {/* Registration Routes */}
             <Route path="/carrier-registration" element={<CarrierRegistration />} />
