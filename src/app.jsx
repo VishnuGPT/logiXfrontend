@@ -36,7 +36,7 @@ import CompleteProfilePage from './components/CompleteProfile';
 const MainLayout = () => (
   <>
     <Navbar />
-    <div className="h-[72px]" /> {/* Spacer so navbar doesn’t overlap */}
+    <div className="h-[84px]" /> {/* Spacer so navbar doesn’t overlap */}
     <main>
       <Outlet />
     </main>
