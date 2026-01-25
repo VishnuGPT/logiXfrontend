@@ -1,5 +1,5 @@
-import React, { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useRef } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 import Hero from "./landingPageComponents/hero.jsx";
 import KeyFeatures from "./landingPageComponents/KeyFeatures.jsx";
@@ -11,6 +11,7 @@ import CallModal from "./landingPageComponents/CallModal.jsx"; // Import the mod
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const targetRef = useRef(null);
 
   // --- Modal State ---
@@ -30,8 +31,21 @@ export default function LandingPage() {
     targetRef.current.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Allow Navbar "PTL" / "Courier" to reuse this existing page + modal flow
+  useEffect(() => {
+    const requestedService = location.state?.serviceId;
+    const shouldOpen = location.state?.openCallModal && (requestedService === "ptl" || requestedService === "courier");
+    if (!shouldOpen) return;
+
+    // Scroll to Services section then open the call modal
+    requestAnimationFrame(() => {
+      targetRef.current?.scrollIntoView({ behavior: "smooth" });
+      openModal();
+    });
+  }, [location.key]);
+
   return (
-    <div>
+    <div className="-mt-[84px]">
       {/* Pass the openModal function down to the Hero component */}
       <Hero
         scrollToComponent={scrollToComponent}
