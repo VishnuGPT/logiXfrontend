@@ -28,6 +28,7 @@ import DriverRegistration from './pages/Driver_registration';
 
 //applications
 import PackersMoversForm from './pages/PackersMoversForm';
+import TransporterDetails from './pages/TransporterDetails';
 
 // --- Layouts ---
 const MainLayout = () => (
@@ -86,6 +87,7 @@ function App() {
             <Route path="/transporter-dashboard" element={<TransporterDashboard />} />
             <Route path="/consignment" element={<Consignment />} />
             <Route path="/available-transporter" element={<AvailableTransporters />} />
+            <Route path="/admin/transporters/:id" element={<TransporterDetails />} />
           </Route>
         </Routes>
       </Router>

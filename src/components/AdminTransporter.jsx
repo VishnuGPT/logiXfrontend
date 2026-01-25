@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Building2, Mail, Phone, Calendar, FileText, Shield, User, MapPin } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const StatusBadge = ({ status }) => {
   const map = {
@@ -33,7 +34,7 @@ const ProfileStatusBadge = ({ status }) => {
 
 const InfoRow = ({ icon: Icon, label, value, className = "" }) => {
   if (!value) return null;
-  
+
   return (
     <div className={`flex items-start gap-2 text-sm ${className}`}>
       <Icon className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -45,11 +46,19 @@ const InfoRow = ({ icon: Icon, label, value, className = "" }) => {
   );
 };
 
-const TransporterCard = ({ transporter, onVerify, onSuspend }) => {
+const TransporterCard = ({ transporter, onVerify, onSuspend, onClick }) => {
   const [expanded, setExpanded] = useState(false);
 
+  const handleExpandClick = (e) => {
+    e.stopPropagation(); // Card click ko trigger nahi hone dega
+    setExpanded(!expanded);
+  };
+
   return (
-    <div className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+    <div
+      onClick={onClick}
+      className="bg-white rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden cursor-pointer"
+    >
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 border-b border-gray-200">
         <div className="flex justify-between items-start mb-3">
@@ -62,7 +71,7 @@ const TransporterCard = ({ transporter, onVerify, onSuspend }) => {
           </div>
           <StatusBadge status={transporter.status} />
         </div>
-        
+
         <div className="flex gap-2">
           <ProfileStatusBadge status={transporter.profileStatus} />
         </div>
@@ -74,7 +83,7 @@ const TransporterCard = ({ transporter, onVerify, onSuspend }) => {
           <InfoRow icon={Mail} label="Email" value={transporter.email} />
           <InfoRow icon={Phone} label="Phone" value={transporter.phoneNumber} />
           <InfoRow icon={User} label="Designation" value={transporter.designation} />
-          
+
           {expanded && (
             <>
               <div className="border-t border-gray-100 my-3 pt-3">
@@ -88,7 +97,7 @@ const TransporterCard = ({ transporter, onVerify, onSuspend }) => {
                   <InfoRow icon={Phone} label="Customer Service" value={transporter.customerServiceNumber} className="mt-3" />
                 )}
               </div>
-              
+
               <div className="border-t border-gray-100 my-3 pt-3">
                 <InfoRow icon={MapPin} label="Address" value={transporter.companyAddress} />
                 <InfoRow icon={FileText} label="GST Number" value={transporter.gstNumber} className="mt-3" />
@@ -96,32 +105,32 @@ const TransporterCard = ({ transporter, onVerify, onSuspend }) => {
                   <InfoRow icon={FileText} label="CIN Number" value={transporter.cinNumber} className="mt-3" />
                 )}
               </div>
-              
+
               <div className="border-t border-gray-100 my-3 pt-3">
-                <InfoRow 
-                  icon={Calendar} 
-                  label="Created" 
-                  value={new Date(transporter.createdAt).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })} 
+                <InfoRow
+                  icon={Calendar}
+                  label="Created"
+                  value={new Date(transporter.createdAt).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}
                 />
               </div>
             </>
           )}
         </div>
 
-        <button 
-          onClick={() => setExpanded(!expanded)}
+        <button
+          onClick={handleExpandClick} // Updated to use handleExpandClick
           className="text-sm text-blue-600 hover:text-blue-700 font-medium mb-4 flex items-center gap-1"
         >
           {expanded ? '← Show Less' : 'Show More →'}
         </button>
 
         {/* Actions */}
-        <div className="flex gap-2">
-          <button 
+        <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+          <button
             onClick={() => onVerify(transporter.id)}
             disabled={transporter.status === 'verified'}
             className="flex-1 px-4 py-2.5 text-sm font-semibold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center gap-2"
@@ -129,7 +138,7 @@ const TransporterCard = ({ transporter, onVerify, onSuspend }) => {
             <Shield className="w-4 h-4" />
             Verify
           </button>
-          <button 
+          <button
             onClick={() => onSuspend(transporter.id)}
             disabled={transporter.status === 'suspended'}
             className="flex-1 px-4 py-2.5 text-sm font-semibold bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors duration-200"
@@ -249,12 +258,15 @@ const AdminTransporters = () => {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [useApi, setUseApi] = useState(true);
-
+  const navigate = useNavigate();
+  const handleCardClick = (transporterId) => {
+    navigate(`/admin/transporters/${transporterId}`);
+  };
   const fetchTransporters = async () => {
     if (!useApi) {
       // Filter dummy data based on search criteria
       let filtered = [...DUMMY_TRANSPORTERS];
-      
+
       if (searchValue) {
         filtered = filtered.filter(t => {
           if (searchType === 'id') {
@@ -265,11 +277,11 @@ const AdminTransporters = () => {
           return true;
         });
       }
-      
+
       if (status) {
         filtered = filtered.filter(t => t.status === status);
       }
-      
+
       setTransporters(filtered);
       return;
     }
@@ -278,16 +290,16 @@ const AdminTransporters = () => {
     try {
       const token = localStorage.getItem("token"); // Replace with localStorage.getItem("token")
 
-      const params = new URLSearchParams({ 
-        searchType, 
-        searchValue, 
-        status 
+      const params = new URLSearchParams({
+        searchType,
+        searchValue,
+        status
       }).toString();
 
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/admin/get-transporters?${params}`,
         {
-          headers: { 
+          headers: {
             'authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
@@ -404,11 +416,12 @@ const AdminTransporters = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {transporters.map((t) => (
-              <TransporterCard 
-                key={t.id} 
-                transporter={t} 
+              <TransporterCard
+                key={t.id}
+                transporter={t}
                 onVerify={handleVerify}
                 onSuspend={handleSuspend}
+                onClick={()=>handleCardClick(t.id)}
               />
             ))}
           </div>
