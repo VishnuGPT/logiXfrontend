@@ -29,6 +29,7 @@ import DriverRegistration from './pages/Driver_registration';
 
 //applications
 import PackersMoversForm from './pages/PackersMoversForm';
+import TransporterDetails from './pages/TransporterDetails';
 import OurStory from './pages/OurStory';
 import CompleteProfilePage from './components/CompleteProfile';
 import CallModal from './pages/landingPageComponents/CallModal';
@@ -94,6 +95,7 @@ function App() {
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/transporter-dashboard" element={<TransporterDashboard />} />
             <Route path="/available-transporter" element={<AvailableTransporters />} />
+            <Route path="/admin/transporters/:id" element={<TransporterDetails />} />
             <Route path="/client-dashboard" element={<ClientDashboard/>}/>
           </Route>
         </Routes>

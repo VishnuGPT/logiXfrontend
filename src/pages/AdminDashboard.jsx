@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Menu, FileText, Package, Edit3, CheckCircle, LogOut, Truck, MapPin, UserCircle } from 'lucide-react';
+import { User, Menu, FileText, Package, Edit3, CheckCircle, LogOut, Truck, MapPin, UserCircle, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button'; // Assuming you have this from ShadCN UI
 import LoaderOne from "@/components/ui/LoadingScreen";
 import axios from 'axios';
@@ -11,6 +11,9 @@ import { AdminConfirmedRequests } from '@/components/AdminConfirmedShipments';
 import { AdminOfferedShipments } from '@/components/AdminOfferedShipments';
 import AdminTransporters from '@/components/AdminTransporter';
 import AdminDrivers from '@/components/AdminDrivers';
+import ShipmentRequestsDashboard from '@/components/ShipmentRequestDashboard';
+import ConfirmedFTLDashboard from '@/components/ConfirmedFTLDashboard';
+import OngoingShipmentsDashboard from '@/components/OngoingShipmentDashboard';
 // --- HELPER & DASHBOARD PAGE COMPONENTS ---
 
 const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => {
@@ -23,6 +26,7 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
     {name:"Drivers",icon:<UserCircle size={18}/>},
     { name: 'Modification Requests', icon: <Edit3 size={18} /> },
     { name: 'Confirmed Requests', icon: <CheckCircle size={18} /> },
+    {name:"Ongoing Shipment",icon:<Navigation size={18} />}
   ];
 
   return (
@@ -105,7 +109,7 @@ const AdminShipmentRequests = () => (
 
 export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState("Shipment Requests"); // Default view for admin
+  const [activeView, setActiveView] = useState("Transporter"); // Default view for admin
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminData, setAdminData] = useState({
     user: { name: "Admin", role: "Administrator" },
@@ -157,20 +161,22 @@ export default function AdminDashboard() {
       case 'Profile':
         return <AdminProfilePage user={adminData.user} />;
       case 'Shipment Requests':
-        return <AdminRequestsRequests />;
+        return <ShipmentRequestsDashboard/>;
       case 'Offered Shipments':
         return <AdminOfferedShipments />;
       case 'Modification Requests':
         return <AdminModificationRequests />;
       case 'Confirmed Requests':
-        return <AdminConfirmedRequests />;
+        return <ConfirmedFTLDashboard/>;
       case 'Transporter':
         return <AdminTransporters/>;
+      case "Ongoing Shipment":
+        return <OngoingShipmentsDashboard/>;
       case "Drivers":
         return <AdminDrivers/>
       
       default:
-        return <AdminShipmentRequests />;
+        return <AdminTransporters />;
     }
   };
 
