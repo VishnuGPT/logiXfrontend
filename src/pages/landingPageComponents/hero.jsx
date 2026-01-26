@@ -70,7 +70,7 @@ export default function Hero({ scrollToComponent, onOpenCallModal }) {
                 onClick={scrollToComponent}
                 className="px-8 py-3 bg-[#E32636] hover:cursor-pointer text-white rounded-full font-semibold transition hover:opacity-80"
               >
-                Ship Order Now!!
+                Ship Order Now
               </button>
               <button
                 onClick={onOpenCallModal}
