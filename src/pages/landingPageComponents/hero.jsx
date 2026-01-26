@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion"; // 1. Import motion
 import logixjunction from "../../assets/j2.mp4";
-import ScrollStack, { ScrollStackItem } from "./ScrollStack";
 
 export default function Hero({ scrollToComponent, onOpenCallModal }) {
   const navigate = useNavigate();
@@ -93,64 +92,7 @@ export default function Hero({ scrollToComponent, onOpenCallModal }) {
               "radial-gradient(900px 500px at 15% 20%, rgba(0,145,213,0.22), transparent 60%), radial-gradient(900px 520px at 85% 30%, rgba(227,38,54,0.18), transparent 62%), radial-gradient(900px 520px at 60% 90%, rgba(46,204,113,0.14), transparent 60%)",
           }}
         />
-        <div className="relative max-w-7xl mx-auto px-6 pt-10 sm:pt-14 pb-4">
-          <div className="flex flex-col items-center text-center">
-            <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-[#001F3F]">
-              Why Choose Us
-            </h2>
-            <p className="mt-3 max-w-3xl text-base sm:text-lg text-[#001F3F]/75">
-              A single marketplace for freight, courier, and relocation—built for B2B speed,
-              reliability, and visibility.
-            </p>
-          </div>
-        </div>
       </section>
-
-      <ScrollStack>
-        <ScrollStackItem accent="blue">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#001F3F]/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#001F3F]/70">
-            Platform Positioning
-          </div>
-          <h3 className="mt-5 text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Unified Logistics Marketplace
-          </h3>
-          <p className="mt-4 text-base sm:text-lg leading-relaxed text-[#001F3F]/80">
-            LogiXjunction is a single, integrated logistics marketplace that brings together
-            transportation services, courier solutions, logistics operations, and packers and movers
-            on one platform. Instead of managing multiple vendors and fragmented processes,
-            businesses can plan, book, and coordinate all logistics requirements through one
-            centralized system.
-          </p>
-        </ScrollStackItem>
-        <ScrollStackItem accent="red">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#001F3F]/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#001F3F]/70">
-            Solution Depth
-          </div>
-          <h3 className="mt-5 text-3xl sm:text-4xl font-extrabold tracking-tight">
-            End-to-End B2B Logistics Solutions
-          </h3>
-          <p className="mt-4 text-base sm:text-lg leading-relaxed text-[#001F3F]/80">
-            We deliver end-to-end logistics solutions covering first-mile pickup, intercity
-            transportation, last-mile delivery, and relocation services. Our platform is designed
-            specifically for B2B logistics needs, supporting varied shipment sizes, industries, and
-            operational workflows across India.
-          </p>
-        </ScrollStackItem>
-        <ScrollStackItem accent="emerald">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#001F3F]/10 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-[#001F3F]/70">
-            Technology &amp; Operations
-          </div>
-          <h3 className="mt-5 text-3xl sm:text-4xl font-extrabold tracking-tight">
-            Technology-Driven Logistics Operations
-          </h3>
-          <p className="mt-4 text-base sm:text-lg leading-relaxed text-[#001F3F]/80">
-            Our technology-driven logistics platform enables centralized coordination, improved
-            shipment visibility, and process-driven execution across all service categories. By
-            combining technology with verified logistics partners, LogiXjunction helps businesses
-            achieve more reliable, scalable, and efficient logistics operations.
-          </p>
-        </ScrollStackItem>
-      </ScrollStack>
     </>
   );
 }

@@ -11,7 +11,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const TOP_BAR_HEIGHT = 72;
+  const TOP_BAR_HEIGHT = 50;
 
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -239,11 +239,8 @@ export default function Navbar() {
             </Link>
 
             <div className="hidden md:flex items-center gap-3">
-              <Button asChild variant="ghost">
-                <Link to="/sign-in">Sign In</Link>
-              </Button>
               <Button asChild variant="cta">
-                <Link to="/sign-up">Get Started</Link>
+                <Link to="/sign-in">SignIn / SignUp</Link>
               </Button>
             </div>
           </div>
