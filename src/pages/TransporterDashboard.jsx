@@ -13,6 +13,7 @@ import { toast } from 'react-hot-toast';
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmedRequests } from '@/components/ConfirmedRequests';
 import TransporterProfile from '@/components/TransporterProfile';
+import RequestedShipment from '../components/RequestedShipment'
 
 const ProfileQuickView = ({ user }) => (
   <div className="flex items-center gap-3">
@@ -325,7 +326,7 @@ export default function TransporterDashboard() {
       case 'Profile':
         return <TransporterProfile user={transporterData.user} />;
       case 'Requests':
-        return <ShipmentRequestsPage />;
+        return <RequestedShipment />;
       case 'Modifications':
         return <GetModificationRequests />;
       case 'New Request':

@@ -24,3 +24,6 @@ dist-ssr
 
 .vercel
 
+public/static/
+src/assets/static/
+dist/static/

@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Twitter, Linkedin, Instagram, ArrowUp, Send } from 'lucide-react';
-import { Input } from './Input'; 
-import { Button } from './Button'; 
+import React, { useState, useEffect, useRef } from 'react';
+import { Twitter, Linkedin, Instagram, ArrowRight, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Logo from '../../assets/LOGO.png'; 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import Logo from '../../assets/LOGO.png';
 
 // --- Data for easy management ---
 const footerLinks = [
@@ -13,7 +11,6 @@ const footerLinks = [
         links: [
             { label: 'About Us', href: '/about-us' },
             { label: 'Careers', href: '/careers' },
-            { label: 'News', href: '/news' },
             { label: 'Admin Access', href: '/admin-sign-in' }
         ],
     },
@@ -36,48 +33,42 @@ const footerLinks = [
 ];
 
 const socialLinks = [
-    { icon: <Twitter className="h-5 w-5" />, href: '#' },
-    { icon: <Linkedin className="h-5 w-5" />, href: '#' },
-    { icon: <Instagram className="h-5 w-5" />, href: '#' },
+    { icon: <Twitter className="h-5 w-5" />, href: 'https://x.com/LogiXjunction' },
+    { icon: <Linkedin className="h-5 w-5" />, href: 'https://www.linkedin.com/company/logixjunction' },
+    { icon: <Instagram className="h-5 w-5" />, href: 'https://www.instagram.com/logixjunction' },
 ];
 
-
-// --- Main Footer Component ---
 export default function Footer() {
-    const [email, setEmail] = useState('');
-    const [status, setStatus] = useState({ message: '', type: '' });
-    const [showScroll, setShowScroll] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const [showButton, setShowButton] = useState(false);
 
+    // Show button after scrolling down 400px
     useEffect(() => {
-        const checkScrollTop = () => {
-            if (!showScroll && window.pageYOffset > 400) {
-                setShowScroll(true);
-            } else if (showScroll && window.pageYOffset <= 400) {
-                setShowScroll(false);
+        const checkScroll = () => {
+            if (window.pageYOffset > 400) {
+                setShowButton(true);
+            } else {
+                setShowButton(false);
             }
         };
-        window.addEventListener('scroll', checkScrollTop);
-        return () => window.removeEventListener('scroll', checkScrollTop);
-    }, [showScroll]);
+        window.addEventListener('scroll', checkScroll);
+        return () => window.removeEventListener('scroll', checkScroll);
+    }, []);
 
-    const scrollToTop = () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+    const handleCustomerRedirect = () => {
+        const isLandingPage = location.pathname === '/' || location.pathname === '/landing';
 
-    const handleSubscribe = async (e) => {
-        e.preventDefault();
-        if (!email || !email.includes('@')) {
-            setStatus({ message: 'Please enter a valid email.', type: 'error' });
-            return;
+        if (isLandingPage) {
+            // Scroll to the services section ID we added to the Landing Page
+            const element = document.getElementById('services-section');
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        } else {
+            // Redirect to landing page with a hash
+            navigate('/#services');
         }
-
-        // Simulating API call for now
-        setStatus({ message: 'Subscribing...', type: 'loading' });
-        setTimeout(() => {
-            setStatus({ message: "Thank you for subscribing!", type: 'success' });
-            setEmail('');
-            setTimeout(() => setStatus({ message: '', type: '' }), 3000);
-        }, 1500);
     };
 
     return (
@@ -90,6 +81,7 @@ export default function Footer() {
                             <img src={Logo} alt="LogiXjunction Logo" className="h-16 w-auto mb-4" />
                             <p className="max-w-xs">India's smartest digital freight network, built for the future.</p>
                         </div>
+
                         {/* Links Sections */}
                         {footerLinks.map((section) => (
                             <div key={section.title}>
@@ -97,7 +89,9 @@ export default function Footer() {
                                 <ul className="space-y-3">
                                     {section.links.map((link) => (
                                         <li key={link.label}>
-                                            <a href={link.href} className="hover:text-interactive transition-colors">{link.label}</a>
+                                            <a href={link.href} className="hover:text-interactive transition-colors">
+                                                {link.label}
+                                            </a>
                                         </li>
                                     ))}
                                 </ul>
@@ -110,6 +104,7 @@ export default function Footer() {
                         <p className="text-sm text-background/50 order-2 md:order-1">
                             © {new Date().getFullYear()} LogiXjunction. All rights reserved.
                         </p>
+
                         {/* Social Links */}
                         <div className="flex gap-4 order-1 md:order-2">
                             {socialLinks.map((social, index) => (
@@ -122,19 +117,22 @@ export default function Footer() {
                 </div>
             </footer>
 
-            {/* --- Scroll to Top Button --- */}
+            {/* --- Floating Customer CTA Button --- */}
             <AnimatePresence>
-                {showScroll && (
+                {showButton && (
                     <motion.button
-                        onClick={scrollToTop}
-                        initial={{ opacity: 0, y: 50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 50 }}
-                        transition={{ ease: 'easeInOut', duration: 0.3 }}
-                        className="fixed bottom-6 right-6 bg-interactive text-white h-12 w-12 rounded-full flex items-center justify-center shadow-lg hover:bg-headings transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-interactive"
-                        aria-label="Scroll to top"
+                        onClick={() => navigate('/sign-up')}
+                        initial={{ opacity: 0, scale: 0.8, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, x: 20 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="fixed bottom-14 right-6 z-50 flex items-center gap-3 bg-interactive text-white px-6 py-4 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.3)] hover:bg-[#ff4d5d] transition-all group"
                     >
-                        <ArrowUp className="w-6 h-6" />
+                        <span className="font-bold tracking-tight">Are you a Transporter?</span>
+                        <div className="bg-white/20 p-1 rounded-full group-hover:translate-x-1 transition-transform">
+                            <ArrowRight className="w-4 h-4" />
+                        </div>
                     </motion.button>
                 )}
             </AnimatePresence>

@@ -44,9 +44,9 @@ const materialTypes = [
 ];
 const transportModes = ['Road Transport', 'Rail Transport', 'Air Transport', 'Sea Transport', 'Intermodal'];
 const coolingType = ['Ambient temperature/Non-Refrigerated', 'Refrigerated Frozen temperature', 'Refrigerated Chiller'];
-const truckSize = ['Small Vehicle','12 ft', '14 ft', '17 ft', '19 ft', '20 ft', '22 ft', '24 ft', '32 ft', '40 ft'];
+const truckSize = ['Small Vehicle', '12 ft', '14 ft', '17 ft', '19 ft', '20 ft', '22 ft', '24 ft', '32 ft', '40 ft'];
 const units = ['Ft', 'Meter', 'Inch', 'Cm', 'Yard'];
-const smallVehicle= ['Tata Ace', 'Bolero', 'Echo', 'Champion'];
+const smallVehicle = ['Tata Ace', 'Bolero', 'Echo', 'Champion'];
 
 
 const cx = (...cn) => cn.filter(Boolean).join(' ');
@@ -275,7 +275,7 @@ export const ShipmentRequestForm = ({ onComplete }) => {
     length: '',
     width: '',
     height: '',
-    unit:'',
+    unit: '',
     expectedPickup: '',
     expectedDelivery: '',
     transportMode: '',
@@ -285,6 +285,27 @@ export const ShipmentRequestForm = ({ onComplete }) => {
 
   const [errors, setErrors] = useState({});
   const [isFormValid, setIsFormValid] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [emailToken, setEmailToken] = useState(null);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState('');
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const t = setTimeout(() => setCooldown(cooldown - 1), 1000);
+      return () => clearTimeout(t);
+    }
+  }, [cooldown]);
+  useEffect(() => {
+    setOtpSent(false);
+    setOtp('');
+    setEmailVerified(false);
+    setEmailToken(null);
+  }, [formData.email]);
+
+
+
 
   // ... (no changes to validation logic or useEffect) ...
   const validatePincode = (pincode) => {
@@ -345,7 +366,7 @@ export const ShipmentRequestForm = ({ onComplete }) => {
     const requiredFields = [
       'phone', 'email',
       'pickupAddressLine1', 'pickupAddressLine2', 'pickupState', 'pickupPincode',
-      'dropAddressLine1', 'dropAddressLine2', 'dropState', 'dropPincode','materialType', 'bodyType', 'manpower', 'weight',
+      'dropAddressLine1', 'dropAddressLine2', 'dropState', 'dropPincode', 'materialType', 'bodyType', 'manpower', 'weight',
       'expectedPickup', 'expectedDelivery', 'transportMode'
     ];
     const missingFields = requiredFields.filter(field => !formData[field]);
@@ -364,6 +385,9 @@ export const ShipmentRequestForm = ({ onComplete }) => {
     if (formData.transportMode === 'Road Transport' && !formData.truckSize) {
       newErrors.truckSize = 'Please select truck size for road transport';
     }
+    if (!emailVerified) {
+      newErrors.emailVerification = 'Please verify your email';
+    }
     setErrors(newErrors);
     const hasNoErrors = Object.keys(newErrors).length === 0;
     const allRequiredFilled = requiredFields.every(field => formData[field]);
@@ -372,8 +396,8 @@ export const ShipmentRequestForm = ({ onComplete }) => {
       (formData.manpower !== 'yes' || formData.noOfLabours) &&
       (formData.bodyType !== 'Closed' || formData.coolingType) &&
       (formData.transportMode !== 'Road Transport' || formData.truckSize);
-    setIsFormValid(hasNoErrors && allRequiredFilled && conditionalFieldsValid);
-  }, [formData]);
+    setIsFormValid(hasNoErrors && allRequiredFilled && conditionalFieldsValid && emailVerified);
+  }, [formData, emailVerified]);
 
   const handleInputChange = (e) => {
     // ... (no change) ...
@@ -393,47 +417,59 @@ export const ShipmentRequestForm = ({ onComplete }) => {
   };
 
   const handleFinalSubmit = async () => {
-    // ... (no change to submit logic) ...
     try {
       setLoading(true);
-      const fd = new FormData();
-      const fields = {
-        phone: formData.phone,
+      const payload = {
+        // Contact Info
+        contactNumber: formData.phone, // Aligned with Controller normalization
         email: formData.email,
         contactName: formData.contactName,
-        pickupAddressLine1: formData.pickupAddressLine1,
-        pickupAddressLine2: formData.pickupAddressLine2,
+
+        // Pickup
+        pickupAddressLine: formData.pickupAddressLine1, // Controller: pickupAddressLine
+        pickupCity: formData.pickupAddressLine2,       // Mapping City/Area to City
         pickupState: formData.pickupState,
         pickupPincode: formData.pickupPincode,
-        dropAddressLine1: formData.dropAddressLine1,
-        dropAddressLine2: formData.dropAddressLine2,
-        dropState: formData.dropState,
-        dropPincode: formData.dropPincode,
-        materialType: formData.materialType || '',
-        customMaterialType: formData.materialType === 'Others' ? formData.customMaterialType : '',
-        bodyType: formData.bodyType || '',
-        manpower: formData.manpower || 'no',
-        noOfLabours: formData.manpower === 'yes' ? formData.noOfLabours : '0',
-        weight: formData.weight || '',
-        length: formData.length || '',
-        width: formData.width || '',
-        height: formData.height || '',
-        unit: formData.unit || '',
-        materialValue: formData.materialValue || '',
-        additionalNotes: formData.additionalNotes || '',
-        expectedPickupDate: formData.expectedPickup || '',
-        expectedDeliveryDate: formData.expectedDelivery || '',
-        transportMode: formData.transportMode || '',
-        truckSize: formData.truckSize || '',
-        coolingType: formData.coolingType || '',
+
+        // Delivery
+        deliveryAddressLine: formData.dropAddressLine1,
+        deliveryCity: formData.dropAddressLine2,
+        deliveryState: formData.dropState,
+        deliveryPincode: formData.dropPincode,
+
+        // Schedule
+        expectedPickupDate: formData.expectedPickup,
+        expectedDeliveryDate: formData.expectedDelivery,
+
+        // Cargo
+        materialType: formData.materialType.toLowerCase() === 'others' ? 'other' : formData.materialType,
+        customMaterialType: formData.customMaterialType,
+        weightKg: Number(formData.weight),
+        length: formData.length ? Number(formData.length) : null,
+        width: formData.width ? Number(formData.width) : null,
+        height: formData.height ? Number(formData.height) : null, dimensionUnit: formData.unit,
+        materialValue: Number(formData.materialValue),
+        additionalNotes: formData.additionalNotes,
+
+        // Logistics
+        transportMode: formData.transportMode.split(' ')[0].toLowerCase(), // "Road Transport" -> "road"
+        bodyType: formData.bodyType.toLowerCase(), // "Closed" -> "closed"
+        truckSize: formData.truckSize,
+        smallVehicleType: formData.vehicleType, // Match the fix I suggested for the controller
+        coolingType: formData.coolingType,
+        manpower: formData.manpower,
+        noOfLabours: Number(formData.noOfLabours || 0),
       };
-      Object.entries(fields).forEach(([k, v]) => fd.append(k, v ?? ''));
+
       const token = localStorage.getItem('token');
-      const url = `${import.meta.env.VITE_API_URL}/api/shipment/create`;
-      const res = await axios.post(url, fd, {
+      const url = `${import.meta.env.VITE_API_URL}/api/ftl/create`;
+
+      // 2. Send as JSON (standard for Sequelize/Express apps without files)
+      const res = await axios.post(url, payload, {
         headers: {
+          'Content-Type': 'application/json',
+          'x-email-token': emailToken,
           Authorization: token ? `Bearer ${token}` : '',
-          'Content-Type': 'multipart/form-data',
         },
       });
       setLoading(false);
@@ -482,7 +518,7 @@ export const ShipmentRequestForm = ({ onComplete }) => {
     <form onSubmit={handlePreviewSubmit} className="space-y-8 max-w-5xl mx-auto">
       {/* 26. THEMED: Removed sticky header wrapper, as it's better to let the page scroll */}
       {/* The sticky header was fighting with the new page background */}
-      
+
       {/* 27. THEMED: Main card styling updated */}
       <div className="bg-white rounded-3xl shadow-xl p-6 sm:p-8 space-y-8 border border-[#001F3F]/10">
         <div className="border-b border-[#001F3F]/10 pb-6"> {/* 28. THEMED: Border color */}
@@ -524,22 +560,126 @@ export const ShipmentRequestForm = ({ onComplete }) => {
 
         {/* Contact */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-2">
+          {/* Contact Name */}
           <div>
             <Field label="Contact Name" id="contactName" icon={<User className="w-4 h-4" />}>
-              <TextInput id="contactName" name="contactName" value={formData.contactName} onChange={handleInputChange} placeholder="Contact person name" />
+              <TextInput
+                id="contactName"
+                name="contactName"
+                value={formData.contactName}
+                onChange={handleInputChange}
+                placeholder="Contact person name"
+              />
             </Field>
           </div>
+
+          {/* Phone */}
           <div>
-            <Field label="Phone Number" id="phone" required error={errors.phone} icon={<Phone className="w-4 h-4" />}>
-              <TextInput id="phone" name="phone" value={formData.phone} onChange={handleInputChange} placeholder="10 digit phone number" maxLength={10} inputMode="numeric" />
+            <Field
+              label="Phone Number"
+              id="phone"
+              required
+              error={errors.phone}
+              icon={<Phone className="w-4 h-4" />}
+            >
+              <TextInput
+                id="phone"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="10 digit phone number"
+                maxLength={10}
+                inputMode="numeric"
+              />
             </Field>
           </div>
+
+          {/* Email + Verify + OTP */}
           <div>
-            <Field label="Email" id="email" required error={errors.email} icon={<Mail className="w-4 h-4" />}>
-              <TextInput id="email" name="email" type="email" value={formData.email} onChange={handleInputChange} placeholder="contact@example.com" />
+            <Field
+              label="Email"
+              id="email"
+              required
+              error={errors.email}
+              icon={<Mail className="w-4 h-4" />}
+            >
+              <div className="flex gap-2 items-start">
+                <TextInput
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  disabled={emailVerified}
+                  onChange={handleInputChange}
+                  placeholder="contact@example.com"
+                  className="flex-1"
+                />
+
+                {!emailVerified && (
+                  <button
+                    type="button"
+                    disabled={!!errors.email || cooldown > 0}
+                    onClick={async () => {
+                      await axios.post(
+                        `${import.meta.env.VITE_API_URL}/api/ftl/send-otp`,
+                        { email: formData.email }
+                      );
+                      setOtpSent(true);
+                      setCooldown(60);
+                    }}
+                    className={cx(
+                      'px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap',
+                      cooldown > 0 || !!errors.email
+                        ? 'bg-gray-300 text-gray-600 cursor-not-allowed'
+                        : 'bg-[#0091D5] text-white hover:opacity-90'
+                    )}
+                  >
+                    {cooldown > 0 ? `${cooldown}s` : 'Verify'}
+                  </button>
+                )}
+              </div>
             </Field>
+
+            {/* OTP – perfectly aligned under Email */}
+            {otpSent && !emailVerified && (
+              <div className="mt-2 flex gap-2">
+                <TextInput
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Enter OTP"
+                  maxLength={6}
+                  inputMode="numeric"
+                />
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const res = await axios.post(
+                      `${import.meta.env.VITE_API_URL}/api/ftl/verify-otp`,
+                      { email: formData.email, otp }
+                    );
+
+                    setEmailToken(res.data.tempToken);
+                    setEmailVerified(true);
+                    setOtpSent(false);
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-green-600 text-white font-semibold hover:opacity-90"
+                >
+                  Verify OTP
+                </button>
+              </div>
+            )}
+
+            {/* Verified state */}
+            {emailVerified && (
+              <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
+                <CheckCircle className="w-4 h-4" /> Email verified
+              </p>
+            )}
           </div>
         </div>
+
+
+
 
         {/* Pickup and Drop */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-[#001F3F]/10">
@@ -645,9 +785,9 @@ export const ShipmentRequestForm = ({ onComplete }) => {
         <div>
           <div className="flex items-center text-sm font-semibold text-[#001F3F]/90 mb-2"><Ruler className="w-4 h-4 mr-2 text-orange-600" />Dimensions</div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
-            <TextInput  type="number" name="length" value={formData.length} onChange={handleInputChange} placeholder="Length" min={0} step={0.1} />
-            <TextInput  type="number" name="width" value={formData.width} onChange={handleInputChange} placeholder="Width" min={0} step={0.1} />
-            <TextInput  type="number" name="height" value={formData.height} onChange={handleInputChange} placeholder="Height" min={0} step={0.1} />
+            <TextInput type="number" name="length" value={formData.length} onChange={handleInputChange} placeholder="Length" min={0} step={0.1} />
+            <TextInput type="number" name="width" value={formData.width} onChange={handleInputChange} placeholder="Width" min={0} step={0.1} />
+            <TextInput type="number" name="height" value={formData.height} onChange={handleInputChange} placeholder="Height" min={0} step={0.1} />
             <SelectInput id="unit" name="unit" value={formData.unit} onChange={handleInputChange} required>
               <option value="">Select Unit</option>
               {units.map((unit) => (

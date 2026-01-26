@@ -351,23 +351,19 @@ export default function FleetManager({ user }) {
     const entries = Object.entries(newDocument).filter(
       ([_, file]) => file instanceof File
     );
-
     if (entries.length === 0) {
       toast.error("Please upload at least one document");
       return;
     }
-
     setIsSubmitting(true);
-
     try {
       const token = localStorage.getItem("token");
 
-      await Promise.all(
-        entries.map(([key, file]) => {
+      const responses = await Promise.all(
+        entries.map(async ([key, file]) => {
           const formData = new FormData();
           formData.append("file", file);
-
-          return axios.post(
+          const res = await axios.post(
             `${import.meta.env.VITE_API_URL}/api/document/add-${key}`,
             formData,
             {
@@ -376,38 +372,52 @@ export default function FleetManager({ user }) {
               },
             }
           );
+          return res.data;
         })
       );
 
       toast.success("Documents submitted successfully");
       setNewDocument({});
-      fetchDocuments();
+      await fetchDocuments();
+
     } catch (err) {
-      console.error(err);
+      console.error("❌ Upload error:", err?.response?.data || err);
       toast.error("Failed to upload documents");
     } finally {
       setIsSubmitting(false);
     }
   };
+  const fetchVehicleData = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const config = { headers: { authorization: `Bearer ${token}` } }
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const config = { headers: { authorization: `Bearer ${token}` } }
-    const fetchVehicleData = async () => {
-      try {
-        console.log("getting data of vehciles")
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/vehicle/all`, config)
-        console.log(res.data)
-        setVehicles(res.data.vehicles)
-        console.log(res.data.vehicles)
-        setLoading(false)
-      } catch (err) {
-        console.log(err)
-        console.log("eroro aa gaya")
-      }
+      console.log("getting data of vehciles")
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/vehicle/all`, config)
+      console.log(res.data)
+      setVehicles(res.data.vehicles)
+      console.log(res.data.vehicles)
+    } catch (err) {
+      console.log(err)
     }
-    fetchVehicleData()
+  }
+  useEffect(() => {
+    const init = async () => {
+      try {
+        await Promise.all([
+          fetchDrivers(),
+          fetchDocuments(),
+          fetchCoverage(),
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
   }, []);
+
+
   const openVehicleDocument = async (vehicleId, type) => {
     try {
       const token = localStorage.getItem('token');
@@ -452,7 +462,7 @@ export default function FleetManager({ user }) {
       const token = localStorage.getItem("token");
 
       const res = await axios.get(
-        `${import.meta.env.VITE_API_URL}/api/document/${key}/url`,
+        `${import.meta.env.VITE_API_URL}/api/document/${key}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -490,34 +500,12 @@ export default function FleetManager({ user }) {
     pickup: { panIndia: false, locations: [] },
     drop: { panIndia: false, locations: [] },
   });
-
-  const dummyBackendCoverage = {
-    pickupLocation: "PAN India",
-    dropLocation: ["Delhi", "Haryana"],
-  };
-
-  const normalizeCoverage = (data) => {
-    const normalize = (value) => {
-      if (value === "PAN India") {
-        return { panIndia: true, locations: [] };
-      }
-
-      if (Array.isArray(value)) {
-        return { panIndia: false, locations: value };
-      }
-
-      return { panIndia: false, locations: [] };
-    };
-
-    return {
-      pickup: normalize(data.pickupLocation),
-      drop: normalize(data.dropLocation),
-    };
-  };
   useEffect(() => {
-    const data = dummyBackendCoverage;
-    setCoverage(normalizeCoverage(data));
-  }, []);
+    if (activeTab === "coverage") {
+      fetchCoverage();
+    }
+  }, [activeTab]);
+
 
 
   const STATES = [
@@ -587,6 +575,53 @@ export default function FleetManager({ user }) {
       };
     });
   };
+  const fetchCoverage = async () => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/coverage`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setServicesOffered(res.data.servicesOffered || []);
+      setCoverage({
+        pickup: res.data.pickup,
+        drop: res.data.drop,
+      });
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to load coverage");
+    }
+  };
+
+  const saveCoverage = async () => {
+    if (servicesOffered.length === 0) {
+      toast.error("Please select at least one service");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/coverage`,
+        {
+          servicesOffered,
+          pickup: coverage.pickup,
+          drop: coverage.drop,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      toast.success("Coverage saved successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to save coverage");
+    }
+  };
+
+
 
 
 
@@ -606,10 +641,6 @@ export default function FleetManager({ user }) {
       toast.error('All fields are required');
       return;
     }
-
-    useEffect(() => {
-      console.log("Vehicle Fetched Successfully")
-    }, [newVehicle])
 
     try {
       setIsSubmitting(true);
@@ -637,6 +668,7 @@ export default function FleetManager({ user }) {
           },
         }
       );
+      fetchVehicleData();
       toast.success('Vehicle added for verification');
       setShowAddVehicle(false);
 
@@ -682,9 +714,11 @@ export default function FleetManager({ user }) {
   useEffect(() => {
     fetchDrivers();
   }, []);
-
-
-
+  useEffect(() => {
+    if (activeTab == 'fleet') {
+      fetchVehicleData();
+    }
+  }, [activeTab])
   const handleAddDriver = async () => {
     if (
       !newDriver.name ||
@@ -753,8 +787,8 @@ export default function FleetManager({ user }) {
       name: "ownerName",
       icon: <BadgeCheck size={16} />,
       route: "/add-owner-name",
-      allowMultiple: false,
-      buttonText: "Add",
+      allowMultiple: true,
+      buttonText: "Update",
     },
     {
       label: "Owner Phone Number",
@@ -766,7 +800,7 @@ export default function FleetManager({ user }) {
     },
     {
       label: "Customer Care Number",
-      name: "customerCareNumber",
+      name: "customerServiceNumber",
       icon: <BadgeCheck size={16} />,
       route: "/update-customer-service-number",
       allowMultiple: true,
@@ -779,35 +813,35 @@ export default function FleetManager({ user }) {
   const handleChange = (name, value) => {
     setFormValues(prev => ({ ...prev, [name]: value }));
   };
-  const handleSubmitField = async (field) => {
-    try {
-      setLoadingField(field.name);
-      console.log(formValues[field.name]);
-      const token = localStorage.getItem("token");
+const handleSubmitField = async (field) => {
+  try {
+    setLoadingField(field.name);
+    console.log(formValues[field.name]);
 
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/transporter${field.route}`,
-        { [field.name]: formValues[field.name] },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    const token = localStorage.getItem("token");
 
-      toast.success(`${field.label} ${field.allowMultiple ? "updated" : "added"} successfully`);
+    await axios.post(
+      `${import.meta.env.VITE_API_URL}/api/transporter${field.route}`,
+      { [field.name]: formValues[field.name] },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
-      await fetchUser();
-
-    } catch (err) {
-      console.log(err);
-      toast.error(err.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoadingField(null);
-    }
-  };
+    toast.success(
+      `${field.label} ${field.allowMultiple ? "updated" : "added"} successfully`
+    );
 
 
+  } catch (err) {
+    console.log(err);
+    toast.error(err.response?.data?.message || "Something went wrong");
+  } finally {
+    setLoadingField(null);
+  }
+};
 
   if (loading) return <LoaderOne />;
 
@@ -1000,9 +1034,11 @@ export default function FleetManager({ user }) {
             className="space-y-6"
           >
             {Object.entries(documentData).map(([key, value]) => {
-              const isRejected = value.isVerified === "rejected";
-              const isPending = value.isVerified === "false";
               const isVerified = value.isVerified === "true";
+              const isPending = value.isSubmitted && value.isVerified === "false";
+              const isRejected = value.isVerified === "rejected";
+              const isNeverUploaded = !value.isSubmitted && value.isVerified === "false";
+
               const canUpload = !value.isSubmitted || isRejected;
 
               return (
@@ -1012,25 +1048,29 @@ export default function FleetManager({ user }) {
                     "rounded-2xl border p-5 bg-white shadow-sm",
                     isVerified && "border-emerald-200",
                     isPending && "border-yellow-200",
-                    isRejected && "border-rose-200"
+                    isRejected && "border-rose-200",
+                    isNeverUploaded && "border-slate-200"
                   )}
                 >
-                  {/* Header */}
+                  {/* HEADER */}
                   <div className="flex justify-between items-start">
                     <h3 className="text-lg font-bold text-[#001F3F]">
                       {value.name}
                     </h3>
 
+                    {/* STATUS BADGES */}
                     {isVerified && (
                       <span className="px-3 py-1 text-xs font-bold rounded-full bg-emerald-100 text-emerald-700">
                         Verified
                       </span>
                     )}
+
                     {isPending && (
                       <span className="px-3 py-1 text-xs font-bold rounded-full bg-yellow-100 text-yellow-700">
                         Pending
                       </span>
                     )}
+
                     {isRejected && (
                       <span className="px-3 py-1 text-xs font-bold rounded-full bg-rose-100 text-rose-700">
                         Rejected
@@ -1038,29 +1078,41 @@ export default function FleetManager({ user }) {
                     )}
                   </div>
 
-                  {/* Body */}
+                  {/* BODY MESSAGE */}
                   <div className="mt-3 text-sm text-slate-600">
-                    {isVerified && "Your document has been verified successfully."}
-                    {isPending && "Your document is under review by our verification team."}
+                    {isVerified && (
+                      "Your document has been verified successfully."
+                    )}
+
+                    {isPending && (
+                      "Your document is under review by our verification team."
+                    )}
+
                     {isRejected && (
                       <p className="text-rose-600 font-medium">
                         Reason: {value.description}
                       </p>
                     )}
+
+                    {isNeverUploaded && (
+                      <span className="text-slate-500">
+                        Document not uploaded yet.
+                      </span>
+                    )}
                   </div>
 
-                  {/* VIEW DOCUMENT ✅ */}
+                  {/* VIEW DOCUMENT */}
                   {value.isSubmitted && (
                     <button
                       onClick={() => openDocument(key)}
-                      className="mt-2 text-sm font-semibold text-[#0091D5] hover:underline flex items-center gap-2"
+                      className="mt-3 text-sm font-semibold text-[#0091D5] hover:underline flex items-center gap-2"
                     >
                       <FileText size={14} />
                       View Document
                     </button>
                   )}
 
-                  {/* Upload action */}
+                  {/* UPLOAD */}
                   {canUpload && (
                     <div className="mt-4 max-w-sm">
                       <FileUploader
@@ -1089,7 +1141,7 @@ export default function FleetManager({ user }) {
               );
             })}
 
-            {/* Global submit button */}
+            {/* SUBMIT BUTTON */}
             <div className="pt-4">
               <button
                 onClick={handleSubmitAllDocuments}
@@ -1101,6 +1153,7 @@ export default function FleetManager({ user }) {
             </div>
           </motion.div>
         )}
+
         {activeTab === "coverage" && (
           <motion.div
             key="coverage"
@@ -1236,25 +1289,7 @@ export default function FleetManager({ user }) {
             {/* SAVE */}
             <div className="flex justify-end">
               <button
-                onClick={() => {
-                  if (servicesOffered.length === 0) {
-                    toast.error("Please select at least one service");
-                    return;
-                  }
-
-                  const payload = {
-                    servicesOffered,
-                    pickupLocation: coverage.pickup.panIndia
-                      ? "PAN India"
-                      : coverage.pickup.locations,
-                    dropLocation: coverage.drop.panIndia
-                      ? "PAN India"
-                      : coverage.drop.locations,
-                  };
-
-                  console.log("Submitting coverage:", payload);
-                  // await api.saveCoverage(payload)
-                }}
+                onClick={saveCoverage}
                 className="bg-[#001F3F] hover:bg-[#00172e] text-white px-8 py-3 rounded-xl font-bold shadow-sm active:scale-[0.98]"
               >
                 Save Coverage
