@@ -121,7 +121,7 @@ export function ScrollStackItem({ children, className = "", accent = "blue" }) {
         el.style.top = `${baseY}px`;
         el.style.pointerEvents = ahead > 0.1 ? "none" : "auto";
       });
-      
+
       if (t >= n - 1) onStackComplete?.();
     };
 
@@ -131,15 +131,15 @@ export function ScrollStackItem({ children, className = "", accent = "blue" }) {
   }, [items, itemDistance, itemScale, itemStackDistance, stackPosition, scaleEndPosition, baseScale, rotationAmount, blurAmount, onStackComplete]);
 
   return (
-    <section
+    <>      <section
+
       ref={containerRef}
       className={`relative w-full bg-transparent ${className}`}
       style={{ height: sectionHeight }}
     >
-
-      <div className="sticky top-0 h-screen w-full overflow-hidden pointer-events-none">
-        <div className="relative max-w-7xl mx-auto px-6 pt-10 sm:pt-14 pb-4">
-          <div className="flex flex-col items-center text-center">
+      <div className="sticky top-20 h-screen w-full overflow-hidden pointer-events-none">
+        <div className="aboslute  max-w-7xl mx-auto px-6 sm:pt-14 pb-4 ">
+          <div className="top-0 flex flex-col items-center text-center">
             <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-[#001F3F]">
               Why Choose Us
             </h2>
@@ -162,5 +162,6 @@ export function ScrollStackItem({ children, className = "", accent = "blue" }) {
         ))}
       </div>
     </section>
+    </>
   );
 }
