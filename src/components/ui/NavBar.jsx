@@ -11,7 +11,7 @@ const navLinks = [
 ];
 
 export default function Navbar() {
-  const TOP_BAR_HEIGHT = 50;
+  const TOP_BAR_HEIGHT = 40;
 
   const [isHamburgerOpen, setIsHamburgerOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);

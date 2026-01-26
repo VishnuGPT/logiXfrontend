@@ -143,10 +143,6 @@ export function ScrollStackItem({ children, className = "", accent = "blue" }) {
             <h2 className="mt-4 text-3xl sm:text-5xl font-extrabold tracking-tight text-[#001F3F]">
               Why Choose Us
             </h2>
-            <p className="mt-3 max-w-3xl text-base sm:text-lg text-[#001F3F]/75">
-              A single marketplace for freight, courier, and relocation—built for B2B speed,
-              reliability, and visibility.
-            </p>
           </div>
         </div>
 
