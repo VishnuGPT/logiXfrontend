@@ -71,7 +71,7 @@ export default function Hero({ scrollToComponent, onOpenCallModal }) {
                 onClick={scrollToComponent}
                 className="px-8 py-3 bg-[#E32636] hover:cursor-pointer text-white rounded-full font-semibold transition hover:opacity-80"
               >
-                Ship Order Now!!
+                Ship Order Now
               </button>
               <button
                 onClick={onOpenCallModal}
@@ -99,7 +99,7 @@ export default function Hero({ scrollToComponent, onOpenCallModal }) {
               Why Choose Us
             </h2>
             <p className="mt-3 max-w-3xl text-base sm:text-lg text-[#001F3F]/75">
-              A single marketplace for freight, courier, and relocation—built for B2B speed,
+              A single marketplace for freight, courier, and relocation built for B2B speed,
               reliability, and visibility.
             </p>
           </div>
