@@ -95,7 +95,7 @@ const DUMMY_DRIVERS = [
 
 const InfoRow = ({ icon: Icon, label, value, className = "" }) => {
   if (!value) return null;
-  
+
   return (
     <div className={`flex items-start gap-2 text-sm ${className}`}>
       <Icon className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -165,20 +165,20 @@ const DriverCard = ({ driver, onViewDetails }) => {
       <div className="p-5">
         <div className="space-y-3 mb-4">
           <InfoRow icon={Phone} label="Phone Number" value={driver.driverPhoneNumber} />
-          <InfoRow 
-            icon={Building2} 
-            label="Transporter ID" 
-            value={`#${driver.transporterId}`} 
+          <InfoRow
+            icon={Building2}
+            label="Transporter ID"
+            value={`#${driver.transporterId}`}
           />
           {driver.createdAt && (
-            <InfoRow 
-              icon={Calendar} 
-              label="Registered On" 
-              value={new Date(driver.createdAt).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric' 
-              })} 
+            <InfoRow
+              icon={Calendar}
+              label="Registered On"
+              value={new Date(driver.createdAt).toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+              })}
             />
           )}
         </div>
@@ -190,27 +190,27 @@ const DriverCard = ({ driver, onViewDetails }) => {
             Documents
           </h4>
           <div className="grid grid-cols-1 gap-2">
-            <DocumentLink 
-              icon={CreditCard} 
-              label="Aadhar Card" 
-              url={driver.driverAadharUpload} 
+            <DocumentLink
+              icon={CreditCard}
+              label="Aadhar Card"
+              url={driver.driverAadharUpload}
             />
-            <DocumentLink 
-              icon={FileText} 
-              label="License" 
-              url={driver.driverLicenseUpload} 
+            <DocumentLink
+              icon={FileText}
+              label="License"
+              url={driver.driverLicenseUpload}
             />
-            <DocumentLink 
-              icon={Image} 
-              label="Photo" 
-              url={driver.driverPhotoUpload} 
+            <DocumentLink
+              icon={Image}
+              label="Photo"
+              url={driver.driverPhotoUpload}
             />
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={() => onViewDetails(driver)}
             className="flex-1 px-4 py-2.5 text-sm font-semibold bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center gap-2"
           >
@@ -278,20 +278,20 @@ const DriverModal = ({ driver, onClose }) => {
               Documents
             </h3>
             <div className="grid grid-cols-1 gap-3">
-              <DocumentLink 
-                icon={CreditCard} 
-                label="Aadhar Card" 
-                url={driver.driverAadharUpload} 
+              <DocumentLink
+                icon={CreditCard}
+                label="Aadhar Card"
+                url={driver.driverAadharUpload}
               />
-              <DocumentLink 
-                icon={FileText} 
-                label="Driving License" 
-                url={driver.driverLicenseUpload} 
+              <DocumentLink
+                icon={FileText}
+                label="Driving License"
+                url={driver.driverLicenseUpload}
               />
-              <DocumentLink 
-                icon={Image} 
-                label="Driver Photo" 
-                url={driver.driverPhotoUpload} 
+              <DocumentLink
+                icon={Image}
+                label="Driver Photo"
+                url={driver.driverPhotoUpload}
               />
             </div>
           </div>
@@ -313,13 +313,13 @@ const AdminDrivers = () => {
 
     setLoading(true);
     try {
-      const token =  localStorage.getItem("token"); 
+      const token = localStorage.getItem("token");
 
 
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/admin/get-drivers`,
         {
-          headers: { 
+          headers: {
             'authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
           }
@@ -327,7 +327,8 @@ const AdminDrivers = () => {
       );
 
       const data = await res.json();
-      setDrivers(data?.data || []);
+      setDrivers(data?.data?.length ? data.data : DUMMY_DRIVERS);
+
     } catch (error) {
       console.error("Error fetching drivers:", error);
       setDrivers(DUMMY_DRIVERS);
@@ -354,7 +355,7 @@ const AdminDrivers = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Driver Management</h1>
               <p className="text-gray-500">Manage and monitor all registered drivers</p>
             </div>
-          
+
           </div>
         </div>
 
@@ -377,8 +378,8 @@ const AdminDrivers = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {drivers.map((d) => (
-              <DriverCard 
-                key={d.id} 
+              <DriverCard
+                key={d.id}
                 driver={d}
                 onViewDetails={handleViewDetails}
               />
@@ -388,9 +389,9 @@ const AdminDrivers = () => {
 
         {/* Modal */}
         {selectedDriver && (
-          <DriverModal 
-            driver={selectedDriver} 
-            onClose={() => setSelectedDriver(null)} 
+          <DriverModal
+            driver={selectedDriver}
+            onClose={() => setSelectedDriver(null)}
           />
         )}
       </div>
