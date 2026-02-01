@@ -5,7 +5,7 @@ import axios from "axios";
 
 const InfoRow = ({ icon: Icon, label, value, className = "" }) => {
   if (!value) return null;
-  
+
   return (
     <div className={`flex items-start gap-2 text-sm ${className}`}>
       <Icon className="w-4 h-4 text-gray-400 mt-0.5 flex-shrink-0" />
@@ -108,10 +108,10 @@ const DriverCard = ({ driver, onClick }) => {
       <div className="p-5">
         <div className="space-y-3 mb-4">
           <InfoRow icon={Phone} label="Phone Number" value={driver.driverPhoneNumber} />
-          <InfoRow 
-            icon={Building2} 
-            label="Transporter ID" 
-            value={`#${driver.transporterId}`} 
+          <InfoRow
+            icon={Building2}
+            label="Transporter ID"
+            value={`#${driver.transporterId}`}
           />
           {driver.created_at && (
             <InfoRow 
