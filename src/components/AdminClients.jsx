@@ -8,7 +8,7 @@ import {
     Calendar,
     MapPin,
     BadgeCheck,
-    BadgeX
+    BadgeX,
 } from "lucide-react";
 
 /* -------------------- DUMMY DATA -------------------- */
@@ -40,6 +40,7 @@ const DUMMY_CLIENTS = [
 /* -------------------- SMALL HELPERS -------------------- */
 const InfoRow = ({ icon: Icon, label, value }) => {
     if (!value) return null;
+
     return (
         <div className="flex gap-2 text-sm">
             <Icon className="w-4 h-4 text-gray-400 mt-0.5" />
@@ -65,8 +66,8 @@ const ClientCard = ({ client, onView }) => {
 
                 <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${client.isProfileComplete
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-yellow-100 text-yellow-700"
                         }`}
                 >
                     {client.isProfileComplete ? "Profile Complete" : "Incomplete"}
@@ -104,19 +105,37 @@ const ClientModal = ({ client, onClose }) => {
                     <h2 className="text-2xl font-bold">
                         {client.name || "Client Details"}
                     </h2>
-                    <button onClick={onClose} className="text-2xl">×</button>
+                    <button onClick={onClose} className="text-2xl">
+                        ×
+                    </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                     <InfoRow icon={Mail} label="Email" value={client.email} />
                     <InfoRow icon={Phone} label="Phone" value={client.phoneNumber} />
-                    <InfoRow icon={Building2} label="Company" value={client.companyName} />
-                    <InfoRow icon={MapPin} label="Address" value={client.companyAddress} />
-                    <InfoRow icon={FileText} label="GST Number" value={client.gstNumber} />
+                    <InfoRow
+                        icon={Building2}
+                        label="Company"
+                        value={client.companyName}
+                    />
+                    <InfoRow
+                        icon={MapPin}
+                        label="Address"
+                        value={client.companyAddress}
+                    />
+                    <InfoRow
+                        icon={FileText}
+                        label="GST Number"
+                        value={client.gstNumber}
+                    />
                     <InfoRow
                         icon={Calendar}
                         label="Registered On"
-                        value={new Date(client.createdAt).toDateString()}
+                        value={
+                            client.createdAt
+                                ? new Date(client.createdAt).toDateString()
+                                : null
+                        }
                     />
                 </div>
 
@@ -144,34 +163,57 @@ const ClientModal = ({ client, onClose }) => {
 
 /* -------------------- MAIN COMPONENT -------------------- */
 export default function AdminClients() {
-    const [clients, setClients] = useState(DUMMY_CLIENTS);
-    const [loading, setLoading] = useState(false);
+    const [clients, setClients] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedClient, setSelectedClient] = useState(null);
+    const [isDummy, setIsDummy] = useState(false);
 
     const fetchClients = async () => {
         setLoading(true);
+        setIsDummy(false);
+
         try {
             const token = localStorage.getItem("token");
 
             const res = await fetch(
                 `${import.meta.env.VITE_API_URL}/api/admin/get-clients`,
                 {
+                    method: "GET",
                     headers: {
-                        authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${token}`,
                         "Content-Type": "application/json",
                     },
                 }
             );
 
-            const data = await res.json();
-            setClients(data?.data?.length ? data.data : DUMMY_CLIENTS);
-        } catch (err) {
-            console.error("Client fetch failed, using dummy data");
+            if (!res.ok) throw new Error("API failed");
+
+            const result = await res.json();
+
+            console.log("RAW CLIENT API RESPONSE:", result);
+
+            // ✅ THIS MATCHES YOUR BACKEND RESPONSE
+            if (
+                result?.isValid === true &&
+                Array.isArray(result?.data) &&
+                result.data.length > 0
+            ) {
+                setClients(result.data);
+                setIsDummy(false);
+            } else {
+                setClients(DUMMY_CLIENTS);
+                setIsDummy(true);
+            }
+
+        } catch (error) {
+            console.error("Fetch clients error:", error.message);
             setClients(DUMMY_CLIENTS);
+            setIsDummy(true);
         } finally {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchClients();
@@ -179,7 +221,13 @@ export default function AdminClients() {
 
     return (
         <div className="p-6">
-            <h1 className="text-3xl font-bold mb-6">Client Management</h1>
+            <h1 className="text-3xl font-bold mb-4">Client Management</h1>
+
+            {isDummy && (
+                <p className="text-sm text-orange-600 mb-4">
+                    Showing demo data (no clients found from backend)
+                </p>
+            )}
 
             {loading ? (
                 <p>Loading clients...</p>
@@ -187,10 +235,10 @@ export default function AdminClients() {
                 <p>No clients found</p>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {clients.map((c) => (
+                    {clients.map((client) => (
                         <ClientCard
-                            key={c.id}
-                            client={c}
+                            key={client.id}
+                            client={client}
                             onView={setSelectedClient}
                         />
                     ))}
@@ -206,3 +254,4 @@ export default function AdminClients() {
         </div>
     );
 }
+

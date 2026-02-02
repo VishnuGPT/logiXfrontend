@@ -813,35 +813,35 @@ export default function FleetManager({ user }) {
   const handleChange = (name, value) => {
     setFormValues(prev => ({ ...prev, [name]: value }));
   };
-const handleSubmitField = async (field) => {
-  try {
-    setLoadingField(field.name);
-    console.log(formValues[field.name]);
+  const handleSubmitField = async (field) => {
+    try {
+      setLoadingField(field.name);
+      console.log(formValues[field.name]);
 
-    const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");
 
-    await axios.post(
-      `${import.meta.env.VITE_API_URL}/api/transporter${field.route}`,
-      { [field.name]: formValues[field.name] },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/transporter${field.route}`,
+        { [field.name]: formValues[field.name] },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    toast.success(
-      `${field.label} ${field.allowMultiple ? "updated" : "added"} successfully`
-    );
+      toast.success(
+        `${field.label} ${field.allowMultiple ? "updated" : "added"} successfully`
+      );
 
 
-  } catch (err) {
-    console.log(err);
-    toast.error(err.response?.data?.message || "Something went wrong");
-  } finally {
-    setLoadingField(null);
-  }
-};
+    } catch (err) {
+      console.log(err);
+      toast.error(err.response?.data?.message || "Something went wrong");
+    } finally {
+      setLoadingField(null);
+    }
+  };
 
   if (loading) return <LoaderOne />;
 
@@ -1102,7 +1102,7 @@ const handleSubmitField = async (field) => {
                   </div>
 
                   {/* VIEW DOCUMENT */}
-                  {value.isSubmitted && (
+                  {value.isSubmitted && value.isVerified !== "rejected" && (
                     <button
                       onClick={() => openDocument(key)}
                       className="mt-3 text-sm font-semibold text-[#0091D5] hover:underline flex items-center gap-2"
@@ -1111,6 +1111,7 @@ const handleSubmitField = async (field) => {
                       View Document
                     </button>
                   )}
+
 
                   {/* UPLOAD */}
                   {canUpload && (

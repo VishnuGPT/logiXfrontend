@@ -29,11 +29,11 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
     { name: 'Offered Shipments', icon: <Package size={18} /> },
     { name: "Drivers", icon: <UserCircle size={18} /> },
     { name: 'Modification Requests', icon: <Edit3 size={18} /> },
-    { name: 'Confirmed Requests', icon: <CheckCircle size={18},
-   { name: 'Vehicles', icon: <Truck size={18} /> },
-{ name: "Clients", icon: <User size={18} /> },
-{ name: "Documents", icon: <FileText size={18} /> },
-{ name: "Ongoing Shipment", icon: <Navigation size={18} /> }
+    { name: 'Confirmed Requests', icon: <CheckCircle size={18} /> },
+    { name: 'Vehicles', icon: <Truck size={18} /> },
+    { name: "Clients", icon: <User size={18} /> },
+    { name: "Documents", icon: <FileText size={18} /> },
+    { name: "Ongoing Shipment", icon: <Navigation size={18} /> }
 
   ];
 
@@ -212,17 +212,17 @@ export default function AdminDashboard() {
       case 'Profile':
         return <AdminProfilePage user={adminData.user} />;
       case 'Shipment Requests':
-        return <ShipmentRequestsDashboard/>;
+        return <ShipmentRequestsDashboard />;
       case 'Offered Shipments':
         return <AdminOfferedShipments />;
       case 'Modification Requests':
         return <AdminModificationRequests />;
       case 'Confirmed Requests':
-        return <ConfirmedFTLDashboard/>;
+        return <ConfirmedFTLDashboard />;
       case 'Transporter':
-        return <AdminTransporters/>;
+        return <AdminTransporters />;
       case "Ongoing Shipment":
-        return <OngoingShipmentsDashboard/>;
+        return <OngoingShipmentsDashboard />;
       case "Drivers":
         return <AdminDrivers />
       case 'Vehicles':

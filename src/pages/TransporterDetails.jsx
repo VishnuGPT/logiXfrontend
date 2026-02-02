@@ -170,29 +170,29 @@ const TransporterDetails = () => {
                 Account Information
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InfoItem 
-                  label="Profile Status" 
+                <InfoItem
+                  label="Profile Status"
                   value={
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(transporter.profileStatus)}`}>
                       {transporter.profileStatus}
                     </span>
-                  } 
+                  }
                 />
-                <InfoItem 
-                  label="Verification Status" 
+                <InfoItem
+                  label="Verification Status"
                   value={
                     <span className={`px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(transporter.status)}`}>
                       {transporter.status}
                     </span>
-                  } 
+                  }
                 />
-                <InfoItem 
-                  label="Created At" 
+                <InfoItem
+                  label="Created At"
                   value={new Date(transporter.createdAt).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
-                  })} 
+                  })}
                 />
               </div>
             </div>
@@ -215,7 +215,7 @@ const TransporterDetails = () => {
                 {Object.entries(transporter.Document).map(([key, doc]) => {
                   if (key === 'id' || key === 'transporterId' || key === 'createdAt' || key === 'updatedAt') return null;
                   if (typeof doc !== 'object') return null;
-                  
+
                   return (
                     <DocumentCard key={key} document={doc} />
                   );
@@ -239,9 +239,9 @@ const TransporterDetails = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {transporter.Drivers.map((driver) => (
-                  <DriverCard 
-                    key={driver.id} 
-                    driver={driver} 
+                  <DriverCard
+                    key={driver.id}
+                    driver={driver}
                     onClick={() => navigate(`/driver/${driver.id}`)}
                   />
                 ))}
@@ -264,9 +264,9 @@ const TransporterDetails = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {transporter.Vehicles.map((vehicle) => (
-                  <VehicleCard 
-                    key={vehicle.id} 
-                    vehicle={vehicle} 
+                  <VehicleCard
+                    key={vehicle.id}
+                    vehicle={vehicle}
                     onClick={() => navigate(`/vehicle/${vehicle.id}`)}
                     getStatusColor={getStatusColor}
                   />
@@ -304,60 +304,126 @@ const InfoItem = ({ label, value, fullWidth = false }) => (
 );
 
 const DocumentCard = ({ document }) => {
-  const getVerificationColor = (status) => {
-    if (status === "true" || status === true) return "bg-green-100 text-green-800";
-    if (status === "false" || status === false) return "bg-red-100 text-red-800";
-    return "bg-yellow-100 text-yellow-800";
-  };
-
-  const getVerificationText = (status) => {
-    if (status === "true" || status === true) return "Verified";
-    if (status === "false" || status === false) return "Not Verified";
-    return "Pending";
-  };
-
   return (
-    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-3">
-        <h4 className="font-semibold text-gray-900">{document.name}</h4>
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getVerificationColor(document.isVerified)}`}>
-          {getVerificationText(document.isVerified)}
-        </span>
+    <div className="border border-gray-200 rounded-lg p-4 space-y-3">
+
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <h4 className="font-semibold">{document.name}</h4>
+
+        {/* STATUS BADGE */}
+        {!document.isSubmitted && (
+          <span className="px-2 py-1 text-xs rounded bg-gray-200">
+            Not Uploaded
+          </span>
+        )}
+
+        {document.isSubmitted && document.isVerified === 'false' && (
+          <span className="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700">
+            Pending
+          </span>
+        )}
+
+        {document.isVerified === 'true' && (
+          <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-700">
+            Approved
+          </span>
+        )}
+
+        {document.isVerified === 'rejected' && (
+          <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-700">
+            Rejected
+          </span>
+        )}
       </div>
-      
-      {document.description && (
-        <p className="text-sm text-gray-600 mb-3">{document.description}</p>
+
+      {/* REJECTION REASON */}
+      {document.isVerified === 'rejected' && document.description && (
+        <p className="text-sm text-red-600">
+          ❌ {document.description}
+        </p>
       )}
-      
-      {document.key ? (
-        <a 
-          href={`${import.meta.env.VITE_API_URL}/${document.key}`}
+
+      {/* VIEW DOCUMENT */}
+      {document.isSubmitted && document.url && (
+        <a
+          href={document.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+          className="text-blue-600 text-sm underline"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-          </svg>
           View Document
         </a>
-      ) : (
-        <p className="text-sm text-gray-400">Not uploaded</p>
       )}
+
+
+      {/* ACTION BUTTONS */}
+      {document.isSubmitted && document.isVerified === 'false' && (
+        <div className="flex gap-2">
+          <button className="px-3 py-1 bg-green-600 text-white text-sm rounded">
+            Approve
+          </button>
+
+          <button className="px-3 py-1 bg-red-600 text-white text-sm rounded">
+            Reject
+          </button>
+        </div>
+      )}
+
     </div>
   );
 };
 
+
+
+// const getVerificationText = (status) => {
+//   if (status === "true" || status === true) return "Verified";
+//   if (status === "false" || status === false) return "Not Verified";
+//   return "Pending";
+// };
+
+// return (
+//   <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+//     <div className="flex items-start justify-between mb-3">
+//       <h4 className="font-semibold text-gray-900">{document.name}</h4>
+//       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getVerificationColor(document.isVerified)}`}>
+//         {getVerificationText(document.isVerified)}
+//       </span>
+//     </div>
+
+//     {document.description && (
+//       <p className="text-sm text-gray-600 mb-3">{document.description}</p>
+//     )}
+
+//     {document.key ? (
+//       <a
+//         href={`${import.meta.env.VITE_API_URL}/${document.key}`}
+//         target="_blank"
+//         rel="noopener noreferrer"
+//         className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
+//       >
+//         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+//           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+//         </svg>
+//         View Document
+//       </a>
+//     ) : (
+//       <p className="text-sm text-gray-400">Not uploaded</p>
+//     )}
+//   </div>
+// );
+// };
+
 const DriverCard = ({ driver, onClick }) => {
   return (
-    <div 
+    <div
       onClick={onClick}
       className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer hover:border-blue-500"
     >
       <div className="flex items-center gap-4 mb-3">
         {driver.driverPhotoUpload ? (
-          <img 
+          <img
             src={`${import.meta.env.VITE_API_URL}/${driver.driverPhotoUpload}`}
             alt={driver.driverName}
             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
@@ -374,18 +440,18 @@ const DriverCard = ({ driver, onClick }) => {
           <p className="text-sm text-gray-600">{driver.driverPhoneNumber}</p>
         </div>
       </div>
-      
+
       <div className="space-y-2">
-        <DocumentLink 
-          label="Aadhar" 
+        <DocumentLink
+          label="Aadhar"
           url={driver.driverAadharUpload}
         />
-        <DocumentLink 
-          label="License" 
+        <DocumentLink
+          label="License"
           url={driver.driverLicenseUpload}
         />
       </div>
-      
+
       <div className="mt-3 pt-3 border-t border-gray-200">
         <p className="text-sm text-blue-600 font-medium flex items-center gap-1">
           View Details
@@ -400,7 +466,7 @@ const DriverCard = ({ driver, onClick }) => {
 
 const VehicleCard = ({ vehicle, onClick, getStatusColor }) => {
   return (
-    <div 
+    <div
       onClick={onClick}
       className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer hover:border-blue-500"
     >
@@ -413,23 +479,23 @@ const VehicleCard = ({ vehicle, onClick, getStatusColor }) => {
           {vehicle.status}
         </span>
       </div>
-      
+
       <div className="space-y-2 mb-3">
         <InfoRow label="Capacity" value={vehicle.capacity} />
         <InfoRow label="Dimension" value={vehicle.dimension} />
         <InfoRow label="Body Type" value={vehicle.bodyType} />
-        <InfoRow 
-          label="Refrigerated" 
-          value={vehicle.isRefrigerated ? "Yes" : "No"} 
+        <InfoRow
+          label="Refrigerated"
+          value={vehicle.isRefrigerated ? "Yes" : "No"}
         />
       </div>
-      
+
       <div className="space-y-2 mb-3">
         <DocumentLink label="RC" url={vehicle.rcUrl} />
         <DocumentLink label="Road Permit" url={vehicle.roadPermitUrl} />
         <DocumentLink label="Pollution Certificate" url={vehicle.PollutionCertificateUrl} />
       </div>
-      
+
       <div className="mt-3 pt-3 border-t border-gray-200">
         <p className="text-sm text-blue-600 font-medium flex items-center gap-1">
           View Details
@@ -462,20 +528,18 @@ const DocumentLink = ({ label, url }) => {
   return (
     <div className="flex justify-between text-sm items-center">
       <span className="text-gray-500">{label}:</span>
-      <a 
-        href={`${import.meta.env.VITE_API_URL}/${url}`}
+      <a
+        href={url}
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
         className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1"
       >
         View
-        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-        </svg>
       </a>
     </div>
   );
 };
+
 
 export default TransporterDetails;

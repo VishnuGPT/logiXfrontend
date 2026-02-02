@@ -128,14 +128,16 @@ export default function LandingPage() {
       </section>
 
 
-      <div style={{ height: '400px', position: 'relative' }}>
-        <CircularGallery bend={3} textColor="#000000" borderRadius={0.05} scrollEase={0.02}
+      <div style={{ height: "400px", position: "relative" }}>
+        <CircularGallery
           bend={1}
+          textColor="#000000"
           borderRadius={0.1}
           scrollSpeed={2}
           scrollEase={0.05}
         />
       </div>
+
 
       {/* contact us */}
       <ContactCTASection scrollToComponent={scrollToComponent} />

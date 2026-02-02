@@ -46,6 +46,7 @@ const InfoRow = ({ icon: Icon, label, value, className = "" }) => {
   );
 };
 
+
 const TransporterCard = ({ transporter, onVerify, onSuspend, onClick }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -252,7 +253,9 @@ const DUMMY_TRANSPORTERS = [
 ];
 
 const AdminTransporters = () => {
-  const [transporters, setTransporters] = useState(DUMMY_TRANSPORTERS);
+  const [transporters, setTransporters] = useState([]);
+  const [isDummy, setIsDummy] = useState(false);
+
   const [searchType, setSearchType] = useState("company");
   const [searchValue, setSearchValue] = useState("");
   const [status, setStatus] = useState("");
@@ -263,58 +266,58 @@ const AdminTransporters = () => {
     navigate(`/admin/transporters/${transporterId}`);
   };
   const fetchTransporters = async () => {
-    if (!useApi) {
-      // Filter dummy data based on search criteria
-      let filtered = [...DUMMY_TRANSPORTERS];
-
-      if (searchValue) {
-        filtered = filtered.filter(t => {
-          if (searchType === 'id') {
-            return t.id.toString().includes(searchValue);
-          } else if (searchType === 'company') {
-            return t.companyName.toLowerCase().includes(searchValue.toLowerCase());
-          }
-          return true;
-        });
-      }
-
-      if (status) {
-        filtered = filtered.filter(t => t.status === status);
-      }
-
-      setTransporters(filtered);
-      return;
-    }
-
     setLoading(true);
+    setIsDummy(false);
+
     try {
-      const token = localStorage.getItem("token"); // Replace with localStorage.getItem("token")
+      const token = localStorage.getItem("token");
 
       const params = new URLSearchParams({
         searchType,
         searchValue,
-        status
+        status,
       }).toString();
 
       const res = await fetch(
         `${import.meta.env.VITE_API_URL}/api/admin/get-transporters?${params}`,
         {
           headers: {
-            'authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      const data = await res.json();
-      setTransporters(data?.data || []);
+      if (!res.ok) throw new Error("API failed");
+
+      const result = await res.json();
+
+      console.log("RAW TRANSPORTER API RESPONSE:", result);
+
+      // ✅ BACKEND → REAL DATA
+      if (
+        result?.isValid === true &&
+        Array.isArray(result?.data) &&
+        result.data.length > 0
+      ) {
+        setTransporters(result.data);
+        setIsDummy(false);
+      }
+      // ⚠️ BACKEND EMPTY → DUMMY
+      else {
+        setTransporters(DUMMY_TRANSPORTERS);
+        setIsDummy(true);
+      }
+
     } catch (error) {
       console.error("Error fetching transporters:", error);
       setTransporters(DUMMY_TRANSPORTERS);
+      setIsDummy(true);
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleVerify = async (id) => {
     console.log("Verify transporter:", id);
@@ -400,7 +403,13 @@ const AdminTransporters = () => {
             {transporters.length} {transporters.length === 1 ? 'transporter' : 'transporters'} found
           </span>
         </div>
-
+        {
+          isDummy && (
+            <p className="text-sm text-orange-600 px-2">
+              Showing demo transporters (no transporter found in database)
+            </p>
+          )
+        }
         {/* Transporter Cards */}
         {loading ? (
           <div className="text-center py-12">
@@ -421,7 +430,7 @@ const AdminTransporters = () => {
                 transporter={t}
                 onVerify={handleVerify}
                 onSuspend={handleSuspend}
-                onClick={()=>handleCardClick(t.id)}
+                onClick={() => handleCardClick(t.id)}
               />
             ))}
           </div>
