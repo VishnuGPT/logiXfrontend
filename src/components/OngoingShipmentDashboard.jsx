@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, MapPin, Truck, Weight, DollarSign, ArrowRight, Filter, Search, Activity, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 // Mock data based on your API structure
 const mockActiveShipments = [
@@ -15,7 +17,7 @@ const mockActiveShipments = [
     truckSize: "32ft",
     cost: 45000,
     updated_at: "2026-01-25T10:30:00Z",
-    Client: {
+    owner: {
       id: 101,
       name: "Tech Solutions Pvt Ltd",
       email: "contact@techsolutions.com"
@@ -33,7 +35,7 @@ const mockActiveShipments = [
     truckSize: "40ft",
     cost: 62000,
     updated_at: "2026-01-24T14:20:00Z",
-    Client: {
+    owner: {
       id: 102,
       name: "Industrial Goods Co",
       email: "info@industrialgoods.com"
@@ -51,7 +53,7 @@ const mockActiveShipments = [
     truckSize: "24ft",
     cost: 38000,
     updated_at: "2026-01-23T09:15:00Z",
-    Client: {
+    owner: {
       id: 103,
       name: "Fresh Farms Ltd",
       email: "orders@freshfarms.com"
@@ -69,7 +71,7 @@ const mockActiveShipments = [
     truckSize: "32ft",
     cost: 55000,
     updated_at: "2026-01-25T16:45:00Z",
-    Client: {
+    owner: {
       id: 104,
       name: "Eastern Logistics",
       email: "support@easternlogistics.com"
@@ -87,7 +89,7 @@ const mockActiveShipments = [
     truckSize: "24ft",
     cost: 32000,
     updated_at: "2026-01-24T11:20:00Z",
-    Client: {
+    owner: {
       id: 105,
       name: "Gujarat Traders",
       email: "contact@gujarattraders.com"
@@ -105,7 +107,7 @@ const mockActiveShipments = [
     truckSize: "32ft",
     cost: 48000,
     updated_at: "2026-01-25T08:30:00Z",
-    Client: {
+    owner: {
       id: 106,
       name: "Textile Exports Ltd",
       email: "info@textileexports.com"
@@ -123,7 +125,7 @@ const mockActiveShipments = [
     truckSize: "20ft",
     cost: 25000,
     updated_at: "2026-01-22T15:10:00Z",
-    Client: {
+    owner: {
       id: 107,
       name: "UP Traders",
       email: "contact@uptraders.com"
@@ -138,21 +140,40 @@ const OngoingShipmentsDashboard = () => {
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterTransportMode, setFilterTransportMode] = useState('all');
   const [sortBy, setSortBy] = useState('date');
-
-  useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setShipments(mockActiveShipments);
+  const navigate = useNavigate();
+  
+  const fetchFtlRequests = async () => {
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin/get-active-ftls`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      const data = await response?.data;
+      console.log(data?.data);
+      setShipments(data?.data || []); 
+    } catch (error) {
+      console.error("Error fetching FTL requests:", error);
+      setShipments([]); // Set empty array on error
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+  
+  useEffect(() => {
+    fetchFtlRequests();
   }, []);
 
   const handleCardClick = (id) => {
-    console.log(`Redirecting to /shipment/${id}`);
-    alert(`Redirecting to Shipment #${id} detail page`);
+    navigate(`/ftl-details/${id}`)
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
@@ -161,6 +182,7 @@ const OngoingShipmentsDashboard = () => {
   };
 
   const formatCurrency = (amount) => {
+    if (!amount) return '₹0';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -199,35 +221,45 @@ const OngoingShipmentsDashboard = () => {
   };
 
   const filteredShipments = shipments.filter(shipment => {
-    const matchesSearch = 
-      shipment.Client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.pickupCity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.deliveryCity?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      shipment.id.toString().includes(searchTerm);
+    // Fixed: API returns 'owner' not 'Client'
+    const clientName = shipment?.owner?.name || '';
+    const clientEmail = shipment?.owner?.email || '';
+    const pickupCity = shipment?.pickupCity || '';
+    const deliveryCity = shipment?.deliveryCity || '';
+    const shipmentId = shipment?.id?.toString() || '';
     
-    const matchesStatus = filterStatus === 'all' || shipment.status === filterStatus;
-    const matchesTransport = filterTransportMode === 'all' || shipment.transportMode === filterTransportMode;
+    const matchesSearch = 
+      clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      pickupCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      deliveryCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      shipmentId.includes(searchTerm);
+    
+    const matchesStatus = filterStatus === 'all' || shipment?.status === filterStatus;
+    // Fixed: Case-insensitive comparison for transport mode
+    const matchesTransport = filterTransportMode === 'all' || 
+      shipment?.transportMode?.toLowerCase() === filterTransportMode.toLowerCase();
     
     return matchesSearch && matchesStatus && matchesTransport;
   });
 
   const sortedShipments = [...filteredShipments].sort((a, b) => {
     if (sortBy === 'date') {
-      return new Date(b.updated_at) - new Date(a.updated_at);
+      return new Date(b?.updated_at || 0) - new Date(a?.updated_at || 0);
     } else if (sortBy === 'cost') {
-      return b.cost - a.cost;
+      return (b?.cost || 0) - (a?.cost || 0);
     } else if (sortBy === 'weight') {
-      return b.weightKg - a.weightKg;
+      return (b?.weightKg || 0) - (a?.weightKg || 0);
     }
     return 0;
   });
 
   const stats = {
     total: shipments.length,
-    confirmed: shipments.filter(s => s.status === 'confirmed').length,
-    ongoing: shipments.filter(s => s.status === 'ongoing').length,
-    completed: shipments.filter(s => s.status === 'completed').length,
-    totalRevenue: shipments.reduce((sum, s) => sum + (s.cost || 0), 0)
+    confirmed: shipments.filter(s => s?.status === 'confirmed').length,
+    ongoing: shipments.filter(s => s?.status === 'ongoing').length,
+    completed: shipments.filter(s => s?.status === 'completed').length,
+    totalRevenue: shipments.reduce((sum, s) => sum + (s?.cost || 0), 0)
   };
 
   if (loading) {
@@ -339,10 +371,10 @@ const OngoingShipmentsDashboard = () => {
                 onChange={(e) => setFilterTransportMode(e.target.value)}
               >
                 <option value="all">All Transport</option>
-                <option value="Road">Road</option>
-                <option value="Rail">Rail</option>
-                <option value="Air">Air</option>
-                <option value="Sea">Sea</option>
+                <option value="road">Road</option>
+                <option value="rail">Rail</option>
+                <option value="air">Air</option>
+                <option value="sea">Sea</option>
               </select>
             </div>
 
@@ -370,7 +402,7 @@ const OngoingShipmentsDashboard = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sortedShipments.map((shipment) => {
-              const statusConfig = getStatusConfig(shipment.status);
+              const statusConfig = getStatusConfig(shipment?.status);
               const StatusIcon = statusConfig.icon;
               
               return (
@@ -383,25 +415,25 @@ const OngoingShipmentsDashboard = () => {
                   <div className={`bg-gradient-to-r from-${statusConfig.color}-500 to-${statusConfig.color}-600 px-4 py-3 text-white`}
                        style={{
                          background: `linear-gradient(to right, var(--tw-gradient-stops))`,
-                         backgroundImage: shipment.status === 'confirmed' 
+                         backgroundImage: shipment?.status === 'confirmed' 
                            ? 'linear-gradient(to right, rgb(59 130 246), rgb(37 99 235))'
-                           : shipment.status === 'ongoing'
+                           : shipment?.status === 'ongoing'
                            ? 'linear-gradient(to right, rgb(249 115 22), rgb(234 88 12))'
                            : 'linear-gradient(to right, rgb(34 197 94), rgb(22 163 74))'
                        }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <StatusIcon className="w-5 h-5" />
-                        <span className="font-semibold">Shipment #{shipment.id}</span>
+                        <span className="font-semibold">Shipment #{shipment?.id || 'N/A'}</span>
                       </div>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                     <div className="mt-2">
                       <span className={`text-xs ${statusConfig.bgColor} ${statusConfig.textColor} px-2 py-1 rounded-full font-medium`}
                             style={{
-                              backgroundColor: shipment.status === 'confirmed' 
+                              backgroundColor: shipment?.status === 'confirmed' 
                                 ? 'rgba(191, 219, 254, 0.9)'
-                                : shipment.status === 'ongoing'
+                                : shipment?.status === 'ongoing'
                                 ? 'rgba(254, 215, 170, 0.9)'
                                 : 'rgba(187, 247, 208, 0.9)'
                             }}>
@@ -412,10 +444,10 @@ const OngoingShipmentsDashboard = () => {
 
                   {/* Card Body */}
                   <div className="p-4 space-y-3">
-                    {/* Client Info */}
+                    {/* Client Info - FIXED: Changed from Client to owner */}
                     <div className="pb-3 border-b border-gray-100">
-                      <p className="font-semibold text-gray-900">{shipment.Client.name}</p>
-                      <p className="text-sm text-gray-500">{shipment.Client.email}</p>
+                      <p className="font-semibold text-gray-900">{shipment?.owner?.name || 'Unknown Client'}</p>
+                      <p className="text-sm text-gray-500">{shipment?.owner?.email || 'No email'}</p>
                     </div>
 
                     {/* Route Info */}
@@ -423,14 +455,14 @@ const OngoingShipmentsDashboard = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                           <MapPin className="w-4 h-4 text-green-600 flex-shrink-0" />
-                          <span className="text-sm font-medium text-gray-900">{shipment.pickupCity}</span>
+                          <span className="text-sm font-medium text-gray-900">{shipment?.pickupCity || 'N/A'}</span>
                         </div>
                         <div className="flex-1 mx-2">
                           <div className="border-t-2 border-dashed border-gray-300"></div>
                         </div>
                         <div className="flex items-center space-x-2">
                           <MapPin className="w-4 h-4 text-red-600 flex-shrink-0" />
-                          <span className="text-sm font-medium text-gray-900">{shipment.deliveryCity}</span>
+                          <span className="text-sm font-medium text-gray-900">{shipment?.deliveryCity || 'N/A'}</span>
                         </div>
                       </div>
                     </div>
@@ -442,7 +474,7 @@ const OngoingShipmentsDashboard = () => {
                           <Truck className="w-4 h-4 text-blue-600" />
                           <div>
                             <p className="text-xs text-blue-700">Truck Size</p>
-                            <p className="text-sm font-semibold text-blue-900">{shipment.truckSize || 'N/A'}</p>
+                            <p className="text-sm font-semibold text-blue-900">{shipment?.truckSize || 'N/A'}</p>
                           </div>
                         </div>
                       </div>
@@ -452,7 +484,7 @@ const OngoingShipmentsDashboard = () => {
                           <Weight className="w-4 h-4 text-orange-600" />
                           <div>
                             <p className="text-xs text-orange-700">Weight</p>
-                            <p className="text-sm font-semibold text-orange-900">{shipment.weightKg} kg</p>
+                            <p className="text-sm font-semibold text-orange-900">{shipment?.weightKg || 0} kg</p>
                           </div>
                         </div>
                       </div>
@@ -460,33 +492,39 @@ const OngoingShipmentsDashboard = () => {
 
                     {/* Body Type & Transport */}
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-medium">
-                        {shipment.bodyType}
-                      </span>
-                      <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full font-medium">
-                        {shipment.transportMode}
-                      </span>
+                      {shipment?.bodyType && (
+                        <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-medium">
+                          {shipment.bodyType}
+                        </span>
+                      )}
+                      {shipment?.transportMode && (
+                        <span className="px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded-full font-medium">
+                          {shipment.transportMode}
+                        </span>
+                      )}
                     </div>
 
                     {/* Cost */}
-                    <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-green-200 rounded-lg p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <DollarSign className="w-5 h-5 text-green-600" />
-                          <span className="text-xs text-green-700 font-medium">Shipment Value</span>
+                    {shipment?.cost && (
+                      <div className="bg-gradient-to-r from-emerald-50 to-green-50 border border-green-200 rounded-lg p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <DollarSign className="w-5 h-5 text-green-600" />
+                            <span className="text-xs text-green-700 font-medium">Shipment Value</span>
+                          </div>
+                          <span className="text-lg font-bold text-green-900">
+                            {formatCurrency(shipment.cost)}
+                          </span>
                         </div>
-                        <span className="text-lg font-bold text-green-900">
-                          {formatCurrency(shipment.cost)}
-                        </span>
                       </div>
-                    </div>
+                    )}
                   </div>
 
                   {/* Card Footer */}
                   <div className="bg-gray-50 px-4 py-2 border-t border-gray-100">
                     <div className="flex items-center justify-between">
                       <p className="text-xs text-gray-500">
-                        Updated {formatDate(shipment.updated_at)}
+                        Updated {formatDate(shipment?.updated_at)}
                       </p>
                       <Clock className="w-4 h-4 text-gray-400" />
                     </div>

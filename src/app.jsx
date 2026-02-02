@@ -33,6 +33,9 @@ import TransporterDetails from './pages/TransporterDetails';
 import OurStory from './pages/OurStory';
 import CompleteProfilePage from './components/CompleteProfile';
 import CallModal from './pages/landingPageComponents/CallModal';
+import ConfirmedFTLDashboard from './components/ConfirmedFTLDashboard';
+import FTLDetails from './pages/FTLDetails';
+import DriverDetailPage from './pages/DriverDetailPage';
 
 // --- Layouts ---
 const MainLayout = () => (
@@ -96,6 +99,8 @@ function App() {
             <Route path="/transporter-dashboard" element={<TransporterDashboard />} />
             <Route path="/available-transporter" element={<AvailableTransporters />} />
             <Route path="/admin/transporters/:id" element={<TransporterDetails />} />
+            <Route path='/ftl-details/:id' element={<FTLDetails/>}/>
+            <Route path='/driver/:driverId' element={<DriverDetailPage/>}/>
             <Route path="/client-dashboard" element={<ClientDashboard/>}/>
           </Route>
         </Routes>

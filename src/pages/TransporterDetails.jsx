@@ -8,28 +8,89 @@ const TransporterDetails = () => {
   const [transporter, setTransporter] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
-    const fetchTransporter = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/admin/get-transporter/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setTransporter(res.data?.data);
-      } catch (err) {
-        setError("Failed to load transporter details");
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchTransporter();
   }, [id]);
+
+  const fetchTransporter = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/admin/get-transporter/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setTransporter(res.data?.data);
+    } catch (err) {
+      setError("Failed to load transporter details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    if (!window.confirm(`Are you sure you want to ${newStatus} this transporter?`)) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/admin/transporter/${id}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Refresh data
+      await fetchTransporter();
+      alert(`Transporter ${newStatus} successfully!`);
+    } catch (err) {
+      alert(`Failed to ${newStatus} transporter`);
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleVehicleStatusChange = async (vehicleId, newStatus) => {
+    if (!window.confirm(`Are you sure you want to ${newStatus} this vehicle?`)) {
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      const token = localStorage.getItem("token");
+      await axios.patch(
+        `${import.meta.env.VITE_API_URL}/api/admin/vehicle/${vehicleId}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      // Refresh data
+      await fetchTransporter();
+      alert(`Vehicle ${newStatus} successfully!`);
+    } catch (err) {
+      alert(`Failed to ${newStatus} vehicle`);
+      console.error(err);
+    } finally {
+      setActionLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -72,18 +133,6 @@ const TransporterDetails = () => {
     return statusColors[status?.toLowerCase()] || "bg-gray-100 text-gray-800";
   };
 
-  const getVerificationColor = (status) => {
-    if (status === "true" || status === true) return "bg-green-100 text-green-800";
-    if (status === "false" || status === false) return "bg-red-100 text-red-800";
-    return "bg-yellow-100 text-yellow-800";
-  };
-
-  const getVerificationText = (status) => {
-    if (status === "true" || status === true) return "Verified";
-    if (status === "false" || status === false) return "Not Verified";
-    return "Pending";
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
@@ -98,7 +147,51 @@ const TransporterDetails = () => {
             </svg>
             Back
           </button>
-          <h1 className="text-3xl font-bold text-gray-900">Transporter Details</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-3xl font-bold text-gray-900">Transporter Details</h1>
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3">
+              {transporter.status !== 'verified' && (
+                <button
+                  onClick={() => handleStatusChange('verified')}
+                  disabled={actionLoading}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Verify
+                </button>
+              )}
+              
+              {transporter.status !== 'suspended' && (
+                <button
+                  onClick={() => handleStatusChange('suspended')}
+                  disabled={actionLoading}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  Suspend
+                </button>
+              )}
+
+              {transporter.status === 'suspended' && (
+                <button
+                  onClick={() => handleStatusChange('unverified')}
+                  disabled={actionLoading}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  Reactivate
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Main Card */}
@@ -199,6 +292,70 @@ const TransporterDetails = () => {
           </div>
         </div>
 
+        {/* Coverage Section */}
+        {transporter.Coverage && (
+          <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+            <div className="bg-gradient-to-r from-indigo-600 to-indigo-700 p-4 text-white">
+              <h3 className="text-xl font-bold flex items-center gap-2">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                </svg>
+                Service Coverage
+              </h3>
+            </div>
+            <div className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold text-gray-900 mb-2">Services Offered:</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {transporter.Coverage.servicesOffered.map((service, idx) => (
+                      <span key={idx} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium">
+                        {service}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Pickup:</h4>
+                    {transporter.Coverage.pickup.panIndia ? (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        Pan India
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-2">
+                        {transporter.Coverage.pickup.locations.map((location, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            {location}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Drop:</h4>
+                    {transporter.Coverage.drop.panIndia ? (
+                      <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                        Pan India
+                      </span>
+                    ) : (
+                      <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto">
+                        {transporter.Coverage.drop.locations.map((location, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs">
+                            {location}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Documents Section */}
         {transporter.Document && (
           <div className="bg-white rounded-lg shadow-md overflow-hidden mb-6">
@@ -213,7 +370,7 @@ const TransporterDetails = () => {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {Object.entries(transporter.Document).map(([key, doc]) => {
-                  if (key === 'id' || key === 'transporterId' || key === 'createdAt' || key === 'updatedAt') return null;
+                  if (key === 'id' || key === 'transporterId' || key === 'created_at' || key === 'updated_at' || key === 'status') return null;
                   if (typeof doc !== 'object') return null;
                   
                   return (
@@ -243,6 +400,7 @@ const TransporterDetails = () => {
                     key={driver.id} 
                     driver={driver} 
                     onClick={() => navigate(`/driver/${driver.id}`)}
+                    getStatusColor={getStatusColor}
                   />
                 ))}
               </div>
@@ -269,6 +427,8 @@ const TransporterDetails = () => {
                     vehicle={vehicle} 
                     onClick={() => navigate(`/vehicle/${vehicle.id}`)}
                     getStatusColor={getStatusColor}
+                    onStatusChange={handleVehicleStatusChange}
+                    actionLoading={actionLoading}
                   />
                 ))}
               </div>
@@ -329,9 +489,9 @@ const DocumentCard = ({ document }) => {
         <p className="text-sm text-gray-600 mb-3">{document.description}</p>
       )}
       
-      {document.key ? (
+      {document.url ? (
         <a 
-          href={`${import.meta.env.VITE_API_URL}/${document.key}`}
+          href={document.url}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm font-medium"
@@ -349,40 +509,47 @@ const DocumentCard = ({ document }) => {
   );
 };
 
-const DriverCard = ({ driver, onClick }) => {
+const DriverCard = ({ driver, onClick, getStatusColor }) => {
   return (
     <div 
       onClick={onClick}
       className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer hover:border-blue-500"
     >
       <div className="flex items-center gap-4 mb-3">
-        {driver.driverPhotoUpload ? (
+        {driver.driverPhotoUrl ? (
           <img 
-            src={`${import.meta.env.VITE_API_URL}/${driver.driverPhotoUpload}`}
+            src={driver.driverPhotoUrl}
             alt={driver.driverName}
             className="w-16 h-16 rounded-full object-cover border-2 border-gray-200"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
           />
-        ) : (
-          <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center">
-            <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-            </svg>
-          </div>
-        )}
+        ) : null}
+        <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center" style={{ display: driver.driverPhotoUrl ? 'none' : 'flex' }}>
+          <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        </div>
         <div className="flex-1">
           <h4 className="font-semibold text-gray-900">{driver.driverName}</h4>
           <p className="text-sm text-gray-600">{driver.driverPhoneNumber}</p>
+          <span className={`inline-block mt-1 px-2 py-1 rounded-full text-xs font-semibold ${getStatusColor(driver.status)}`}>
+            {driver.status}
+          </span>
         </div>
       </div>
       
       <div className="space-y-2">
         <DocumentLink 
           label="Aadhar" 
-          url={driver.driverAadharUpload}
+          url={driver.driverAadharUrl}
         />
         <DocumentLink 
           label="License" 
-          url={driver.driverLicenseUpload}
+          url={driver.driverLicenseUrl}
         />
       </div>
       
@@ -398,14 +565,18 @@ const DriverCard = ({ driver, onClick }) => {
   );
 };
 
-const VehicleCard = ({ vehicle, onClick, getStatusColor }) => {
+const VehicleCard = ({ vehicle, onClick, getStatusColor, onStatusChange, actionLoading }) => {
+  const handleAction = (e, status) => {
+    e.stopPropagation();
+    onStatusChange(vehicle.id, status);
+  };
+
   return (
     <div 
-      onClick={onClick}
       className="border border-gray-200 rounded-lg p-4 hover:shadow-lg transition-all cursor-pointer hover:border-blue-500"
     >
       <div className="flex items-start justify-between mb-3">
-        <div>
+        <div onClick={onClick} className="flex-1">
           <h4 className="font-semibold text-gray-900">{vehicle.vehicleName}</h4>
           <p className="text-lg font-bold text-blue-600">{vehicle.vehicleNumber}</p>
         </div>
@@ -414,7 +585,7 @@ const VehicleCard = ({ vehicle, onClick, getStatusColor }) => {
         </span>
       </div>
       
-      <div className="space-y-2 mb-3">
+      <div onClick={onClick} className="space-y-2 mb-3">
         <InfoRow label="Capacity" value={vehicle.capacity} />
         <InfoRow label="Dimension" value={vehicle.dimension} />
         <InfoRow label="Body Type" value={vehicle.bodyType} />
@@ -424,13 +595,55 @@ const VehicleCard = ({ vehicle, onClick, getStatusColor }) => {
         />
       </div>
       
-      <div className="space-y-2 mb-3">
-        <DocumentLink label="RC" url={vehicle.rcUrl} />
-        <DocumentLink label="Road Permit" url={vehicle.roadPermitUrl} />
-        <DocumentLink label="Pollution Certificate" url={vehicle.PollutionCertificateUrl} />
+      <div onClick={onClick} className="space-y-2 mb-3">
+        <DocumentLink label="RC" url={vehicle.rcSignedUrl} />
+        <DocumentLink label="Road Permit" url={vehicle.roadPermitSignedUrl} />
+        <DocumentLink label="Pollution Certificate" url={vehicle.pollutionCertificateSignedUrl} />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2 mb-3 border-t border-gray-200 pt-3">
+        {vehicle.status !== 'verified' && (
+          <button
+            onClick={(e) => handleAction(e, 'verified')}
+            disabled={actionLoading}
+            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium transition-colors flex items-center justify-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Verify
+          </button>
+        )}
+        
+        {vehicle.status !== 'suspended' && (
+          <button
+            onClick={(e) => handleAction(e, 'suspended')}
+            disabled={actionLoading}
+            className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium transition-colors flex items-center justify-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+            Suspend
+          </button>
+        )}
+
+        {vehicle.status === 'suspended' && (
+          <button
+            onClick={(e) => handleAction(e, 'unverified')}
+            disabled={actionLoading}
+            className="flex-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-sm font-medium transition-colors flex items-center justify-center gap-1"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Reactivate
+          </button>
+        )}
       </div>
       
-      <div className="mt-3 pt-3 border-t border-gray-200">
+      <div onClick={onClick} className="border-t border-gray-200 pt-3">
         <p className="text-sm text-blue-600 font-medium flex items-center gap-1">
           View Details
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -463,7 +676,7 @@ const DocumentLink = ({ label, url }) => {
     <div className="flex justify-between text-sm items-center">
       <span className="text-gray-500">{label}:</span>
       <a 
-        href={`${import.meta.env.VITE_API_URL}/${url}`}
+        href={url}
         target="_blank"
         rel="noopener noreferrer"
         onClick={(e) => e.stopPropagation()}
