@@ -10,8 +10,29 @@ import {
 import { toast } from "react-hot-toast";
 import LoaderOne from "@/components/ui/LoadingScreen";
 import axios from "axios";
-const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB (matches backend multer limit)
 const ALLOWED_TYPES = ["application/pdf", "image/png", "image/jpeg"];
+
+/** Human-readable labels for document keys in validation messages */
+const DOC_LABELS = {
+  rcCopy: "RC",
+  roadPermit: "Road Permit",
+  pollutionCert: "Pollution Certificate",
+  aadhar: "Aadhar",
+  license: "License",
+  photo: "Photo",
+};
+
+/** Extract user-friendly message from API error (multer/validation/network) */
+function getApiErrorMessage(err, defaultMsg = "Something went wrong") {
+  if (!err) return defaultMsg;
+  const msg = err.response?.data?.message;
+  if (typeof msg === "string" && msg.trim()) return msg;
+  if (err.code === "ERR_NETWORK") return "Network error. Please check your connection.";
+  if (err.response?.status === 401) return "Session expired. Please sign in again.";
+  if (err.response?.status >= 500) return "Server error. Please try again later.";
+  return defaultMsg;
+}
 
 /* =======================
     SHARED UI HELPERS
@@ -158,6 +179,12 @@ const VehicleCard = ({ vehicle, onDelete, openVehicleDocument }) => {
             {vehicle.isRefrigerated ? "Yes" : "No"}
           </p>
         </div>
+        <div>
+          <p className="text-slate-400">GPS Status</p>
+          <p className="font-semibold text-[#001F3F]">
+            {vehicle.hasGps ? "Installed" : "Not Available"}
+          </p>
+        </div>
       </div>
 
       {/* DOCUMENTS */}
@@ -297,6 +324,7 @@ const DriverCard = ({ driver, onDelete, openDriverDocument }) => {
     MAIN PAGE
 ======================= */
 export default function FleetManager({ user }) {
+
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
@@ -312,7 +340,7 @@ export default function FleetManager({ user }) {
   const [showAddDriver, setShowAddDriver] = useState(false);
 
 
-  const [newVehicle, setNewVehicle] = useState({ vehicleName: '', dimension: '', vehicleNumber: '', capacity: '', isRefrigerated: false, bodyType: 'open' });
+  const [newVehicle, setNewVehicle] = useState({ vehicleName: '', dimension: '', vehicleNumber: '', capacity: '', isRefrigerated: false, bodyType: 'open', hasGps: false });
   const [vehicleFiles, setVehicleFiles] = useState({ rcCopy: null, roadPermit: null, pollutionCert: null });
 
   const [newDriver, setNewDriver] = useState({ name: '', phoneNumber: '' });
@@ -320,6 +348,30 @@ export default function FleetManager({ user }) {
   const [documentData, setDocumentData] = useState({});
 
   const [newDocument, setNewDocument] = useState({});
+  // Add this inside FleetManager component
+  const validateFiles = (filesObject, requiredKeys = []) => {
+    // 1. Check for missing required files
+    for (const key of requiredKeys) {
+      if (!filesObject[key]) {
+        const label = DOC_LABELS[key] || key;
+        return `Please upload the required document: ${label}.`;
+      }
+    }
+
+    // 2. Check size and type for all selected files
+    for (const key in filesObject) {
+      const file = filesObject[key];
+      if (file) {
+        if (file.size > MAX_FILE_SIZE) {
+          return `File "${file.name}" is too large (max 5 MB per file).`;
+        }
+        if (!ALLOWED_TYPES.includes(file.type)) {
+          return `File "${file.name}" has an invalid format. Only PDF, PNG, and JPG are allowed.`;
+        }
+      }
+    }
+    return null;
+  };
 
   const fetchDocuments = async () => {
     try {
@@ -337,8 +389,8 @@ export default function FleetManager({ user }) {
 
       setDocumentData(res.data);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to load documents");
+      console.error("Fetch documents error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Failed to load documents"));
     }
   };
   useEffect(() => {
@@ -348,41 +400,37 @@ export default function FleetManager({ user }) {
   }, [activeTab]);
 
   const handleSubmitAllDocuments = async () => {
-    const entries = Object.entries(newDocument).filter(
-      ([_, file]) => file instanceof File
-    );
+    const entries = Object.entries(newDocument).filter(([_, file]) => file instanceof File);
     if (entries.length === 0) {
       toast.error("Please upload at least one document");
+      return;
+    }
+
+    const fileError = validateFiles(newDocument);
+    if (fileError) {
+      toast.error(fileError);
       return;
     }
     setIsSubmitting(true);
     try {
       const token = localStorage.getItem("token");
-
-      const responses = await Promise.all(
+      await Promise.all(
         entries.map(async ([key, file]) => {
           const formData = new FormData();
           formData.append("file", file);
-          const res = await axios.post(
+          await axios.post(
             `${import.meta.env.VITE_API_URL}/api/document/add-${key}`,
             formData,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
+            { headers: { Authorization: `Bearer ${token}` } }
           );
-          return res.data;
         })
       );
-
       toast.success("Documents submitted successfully");
       setNewDocument({});
       await fetchDocuments();
-
     } catch (err) {
-      console.error("❌ Upload error:", err?.response?.data || err);
-      toast.error("Failed to upload documents");
+      console.error("Document upload error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Failed to upload documents. Check file types (PDF/PNG/JPG) and size (max 5 MB)."));
     } finally {
       setIsSubmitting(false);
     }
@@ -390,17 +438,16 @@ export default function FleetManager({ user }) {
   const fetchVehicleData = async () => {
     try {
       const token = localStorage.getItem('token');
-      const config = { headers: { authorization: `Bearer ${token}` } }
-
-      console.log("getting data of vehciles")
-      const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/vehicle/all`, config)
-      console.log(res.data)
-      setVehicles(res.data.vehicles)
-      console.log(res.data.vehicles)
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/vehicle/all`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setVehicles(res.data.vehicles ?? []);
     } catch (err) {
-      console.log(err)
+      console.error("Fetch vehicles error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Failed to load vehicles"));
     }
-  }
+  };
   useEffect(() => {
     const init = async () => {
       try {
@@ -421,59 +468,45 @@ export default function FleetManager({ user }) {
   const openVehicleDocument = async (vehicleId, type) => {
     try {
       const token = localStorage.getItem('token');
-
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/vehicle/${vehicleId}/document/${type}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      window.open(res.data.url, '_blank');
+      if (res.data?.url) window.open(res.data.url, '_blank');
+      else toast.error("Document URL not available");
     } catch (err) {
-      console.error(err);
-      toast.error('Unable to open document');
+      console.error("Open vehicle document error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Unable to open document"));
     }
   };
 
   const openDriverDocument = async (driverId, type) => {
     try {
       const token = localStorage.getItem('token');
-
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/driver/${driverId}/document/${type}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      window.open(res.data.url, '_blank');
+      if (res.data?.url) window.open(res.data.url, '_blank');
+      else toast.error("Document URL not available");
     } catch (err) {
-      console.error(err);
-      toast.error('Unable to open document');
+      console.error("Open driver document error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Unable to open document"));
     }
   };
+
   const openDocument = async (key) => {
     try {
       const token = localStorage.getItem("token");
-
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/document/${key}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      window.open(res.data.url, "_blank");
+      if (res.data?.url) window.open(res.data.url, "_blank");
+      else toast.error("Document URL not available");
     } catch (err) {
-      console.error(err);
-      toast.error("Unable to open document");
+      console.error("Open document error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Unable to open document"));
     }
   };
 
@@ -627,24 +660,29 @@ export default function FleetManager({ user }) {
 
   const handleAddVehicle = async () => {
     const token = localStorage.getItem('token');
-
     if (
       !newVehicle.vehicleName ||
       !newVehicle.vehicleNumber ||
       !newVehicle.capacity ||
       !newVehicle.dimension ||
-      !newVehicle.bodyType ||
-      !vehicleFiles.rcCopy ||
-      !vehicleFiles.roadPermit ||
-      !vehicleFiles.pollutionCert
+      !newVehicle.bodyType
     ) {
-      toast.error('All fields are required');
+      toast.error('Please fill all vehicle details.');
+      return;
+    }
+    // Require all vehicle documents (RC, Road Permit, Pollution Certificate)
+    if (!vehicleFiles.rcCopy || !vehicleFiles.roadPermit || !vehicleFiles.pollutionCert) {
+      toast.error('All vehicle documents are required: RC, Road Permit, and Pollution Certificate.');
+      return;
+    }
+    const fileError = validateFiles(vehicleFiles, ['rcCopy', 'roadPermit', 'pollutionCert']);
+    if (fileError) {
+      toast.error(fileError);
       return;
     }
 
     try {
       setIsSubmitting(true);
-
       const formData = new FormData();
 
       formData.append('vehicleName', newVehicle.vehicleName);
@@ -652,44 +690,36 @@ export default function FleetManager({ user }) {
       formData.append('capacity', newVehicle.capacity);
       formData.append('dimension', newVehicle.dimension);
       formData.append('isRefrigerated', newVehicle.isRefrigerated);
+      formData.append('hasGps', newVehicle.hasGps);
       formData.append('bodyType', newVehicle.bodyType);
 
       formData.append('rc', vehicleFiles.rcCopy);
       formData.append('roadPermit', vehicleFiles.roadPermit);
       formData.append('pollution', vehicleFiles.pollutionCert);
-      console.log(formData)
 
-      const res = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/api/vehicle/add`,
         formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+
       fetchVehicleData();
       toast.success('Vehicle added for verification');
       setShowAddVehicle(false);
 
-      // Reset state
       setNewVehicle({
         vehicleName: '',
         vehicleNumber: '',
         capacity: '',
+        dimension: '',
         isRefrigerated: false,
+        hasGps: false,
         bodyType: 'open',
       });
-
-      setVehicleFiles({
-        rcCopy: null,
-        roadPermit: null,
-        pollutionCert: null,
-      });
-
+      setVehicleFiles({ rcCopy: null, roadPermit: null, pollutionCert: null });
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || 'Failed to add vehicle');
+      console.error("Vehicle add error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Failed to add vehicle. Check file types (PDF/PNG/JPG) and size (max 5 MB)."));
     } finally {
       setIsSubmitting(false);
     }
@@ -699,16 +729,12 @@ export default function FleetManager({ user }) {
       const token = localStorage.getItem("token");
       const res = await axios.get(
         `${import.meta.env.VITE_API_URL}/api/driver/all`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      setDrivers(res.data.drivers);
+      setDrivers(res.data.drivers ?? []);
     } catch (err) {
-      console.error(err);
-      toast.error("Failed to load drivers");
+      console.error("Fetch drivers error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Failed to load drivers"));
     }
   };
   useEffect(() => {
@@ -720,55 +746,45 @@ export default function FleetManager({ user }) {
     }
   }, [activeTab])
   const handleAddDriver = async () => {
-    if (
-      !newDriver.name ||
-      !newDriver.phoneNumber ||
-      !driverFiles.aadhar ||
-      !driverFiles.license
-    ) {
-      toast.error("All required fields must be filled");
+    if (!newDriver.name?.trim() || !newDriver.phoneNumber?.trim()) {
+      toast.error("Driver name and phone number are required.");
+      return;
+    }
+    // Require all driver documents (Aadhar, License, Photo)
+    if (!driverFiles.aadhar || !driverFiles.license || !driverFiles.photo) {
+      toast.error("All driver documents are required: Aadhar, License, and Photo.");
+      return;
+    }
+    const fileError = validateFiles(driverFiles, ['aadhar', 'license', 'photo']);
+    if (fileError) {
+      toast.error(fileError);
       return;
     }
 
     try {
       setIsSubmitting(true);
-
       const token = localStorage.getItem("token");
-
       const formData = new FormData();
-      formData.append("driverName", newDriver.name);
-      formData.append("driverPhoneNumber", newDriver.phoneNumber);
-
+      formData.append("driverName", newDriver.name.trim());
+      formData.append("driverPhoneNumber", newDriver.phoneNumber.trim());
       formData.append("aadhar", driverFiles.aadhar);
       formData.append("license", driverFiles.license);
-
-      if (driverFiles.photo) {
-        formData.append("photo", driverFiles.photo);
-      }
+      formData.append("photo", driverFiles.photo);
 
       await axios.post(
         `${import.meta.env.VITE_API_URL}/api/driver/add`,
         formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       toast.success("Driver added successfully");
-
-      // reset
       setNewDriver({ name: "", phoneNumber: "" });
       setDriverFiles({ aadhar: null, license: null, photo: null });
       setShowAddDriver(false);
-
-      // refetch drivers
       fetchDrivers();
-
     } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.message || "Failed to add driver");
+      console.error("Driver add error:", err?.response?.data || err);
+      toast.error(getApiErrorMessage(err, "Failed to add driver. Check file types (PDF/PNG/JPG) and size (max 5 MB)."));
     } finally {
       setIsSubmitting(false);
     }
@@ -926,6 +942,11 @@ export default function FleetManager({ user }) {
 
               {showAddVehicle && (
                 <div className="mb-8 p-6 border-2 border-dashed border-[#0091D5]/30 rounded-2xl bg-[#0091D5]/5">
+                  {/* Headline: Vehicle Details */}
+                  <div className="flex items-center gap-2 mb-6 border-b border-[#0091D5]/10 pb-2">
+                    <div className="p-1.5 bg-[#0091D5] text-white rounded-lg"><Truck size={16} /></div>
+                    <h3 className="text-lg font-bold text-[#001F3F]">Vehicle Specifications</h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Field label="Vehicle Name *"><Input placeholder="e.g. Ashok Leyland Dost" value={newVehicle.vehicleName} onChange={e => setNewVehicle({ ...newVehicle, vehicleName: e.target.value })} /></Field>
                     <Field label="Vehicle Number *"><Input placeholder="MH 12 AB 1234" value={newVehicle.vehicleNumber} onChange={e => setNewVehicle({ ...newVehicle, vehicleNumber: e.target.value })} /></Field>
@@ -946,18 +967,34 @@ export default function FleetManager({ user }) {
                       />
                     </Field>
 
+
                     <div className="flex items-center pt-8">
                       <label className="flex items-center cursor-pointer group">
                         <input type="checkbox" className="w-5 h-5 accent-[#0091D5]" checked={newVehicle.isRefrigerated} onChange={e => setNewVehicle({ ...newVehicle, isRefrigerated: e.target.checked })} />
                         <span className="ml-2 text-sm font-semibold text-[#001F3F]">Refrigerated?</span>
                       </label>
+                      {/* NEW GPS FIELD */}
+                      <label className="flex items-center cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          className="w-5 h-5 accent-[#0091D5]"
+                          checked={newVehicle.hasGps}
+                          onChange={e => setNewVehicle({ ...newVehicle, hasGps: e.target.checked })}
+                        />
+                        <span className="ml-2 text-sm font-semibold text-[#001F3F]">GPS Installed?</span>
+                      </label>
                     </div>
-                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                    {/* Headline: Documents */}
+                    <div className="flex items-center gap-2 mt-8 mb-6 border-b border-[#0091D5]/10 pb-2">
+                      <div className="p-1.5 bg-[#0091D5] text-white rounded-lg"><UploadCloud size={16} /></div>
+                      <h3 className="text-lg font-bold text-[#001F3F]">Vehicle Documents</h3>
+                      <span className="text-xs font-normal text-slate-500 ml-auto">Max 2MB per file</span>
+                    </div>
+                    <div className="md:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-4">
                       <FileUploader label="RC Copy *" fileName={vehicleFiles.rcCopy?.name} onFileSelect={(f) => setVehicleFiles(p => ({ ...p, rcCopy: f }))} onClear={() => setVehicleFiles(p => ({ ...p, rcCopy: null }))} />
                       <FileUploader label="Road Permit" fileName={vehicleFiles.roadPermit?.name} onFileSelect={(f) => setVehicleFiles(p => ({ ...p, roadPermit: f }))} onClear={() => setVehicleFiles(p => ({ ...p, roadPermit: null }))} />
                       <FileUploader label="Pollution Cert." fileName={vehicleFiles.pollutionCert?.name} onFileSelect={(f) => setVehicleFiles(p => ({ ...p, pollutionCert: f }))} onClear={() => setVehicleFiles(p => ({ ...p, pollutionCert: null }))} />
-                    </div>
-                    <button onClick={handleAddVehicle} disabled={isSubmitting} className="md:col-span-3 mt-4 w-full bg-[#001F3F] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
+                    </div>                    <button onClick={handleAddVehicle} disabled={isSubmitting} className="md:col-span-3 mt-4 w-full bg-[#001F3F] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                       <Save size={18} /> {isSubmitting ? "Processing..." : "Register Vehicle"}
                     </button>
                   </div>
@@ -982,6 +1019,10 @@ export default function FleetManager({ user }) {
 
               {showAddDriver && (
                 <div className="mb-8 p-6 border-2 border-dashed border-[#0091D5]/30 rounded-2xl bg-[#0091D5]/5">
+                  <div className="flex items-center gap-2 mb-6 border-b border-[#0091D5]/10 pb-2">
+                    <div className="p-1.5 bg-[#0091D5] text-white rounded-lg"><User size={16} /></div>
+                    <h3 className="text-lg font-bold text-[#001F3F]">Personal Information</h3>
+                  </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="md:col-span-2">
                       <Field label="Driver Name *">
@@ -1002,16 +1043,14 @@ export default function FleetManager({ user }) {
                         />
                       </Field>
                     </div>
-                    <Field label="Driver Aadhar Upload *">
-                      <FileUploader label="Upload Aadhar" fileName={driverFiles.aadhar?.name} onFileSelect={(f) => setDriverFiles(p => ({ ...p, aadhar: f }))} onClear={() => setDriverFiles(p => ({ ...p, aadhar: null }))} />
-                    </Field>
-                    <Field label="Driver Licence Upload *">
-                      <FileUploader label="Upload Licence" fileName={driverFiles.license?.name} onFileSelect={(f) => setDriverFiles(p => ({ ...p, license: f }))} onClear={() => setDriverFiles(p => ({ ...p, license: null }))} />
-                    </Field>
-                    <div className="md:col-span-2">
-                      <Field label="Driver Photo Upload">
-                        <FileUploader label="Upload Photo" fileName={driverFiles.photo?.name} onFileSelect={(f) => setDriverFiles(p => ({ ...p, photo: f }))} onClear={() => setDriverFiles(p => ({ ...p, photo: null }))} />
-                      </Field>
+                    <div className="flex items-center gap-2 mt-8 mb-6 border-b border-[#0091D5]/10 pb-2">
+                      <div className="p-1.5 bg-[#0091D5] text-white rounded-lg"><UploadCloud size={16} /></div>
+                      <h3 className="text-lg font-bold text-[#001F3F]">Verification Documents</h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <Field label="Driver Aadhar *"><FileUploader label="Upload Aadhar" fileName={driverFiles.aadhar?.name} onFileSelect={(f) => setDriverFiles(p => ({ ...p, aadhar: f }))} onClear={() => setDriverFiles(p => ({ ...p, aadhar: null }))} /></Field>
+                      <Field label="Driver Licence *"><FileUploader label="Upload Licence" fileName={driverFiles.license?.name} onFileSelect={(f) => setDriverFiles(p => ({ ...p, license: f }))} onClear={() => setDriverFiles(p => ({ ...p, license: null }))} /></Field>
+                      <Field label="Driver Photo *"><FileUploader label="Upload Photo" fileName={driverFiles.photo?.name} onFileSelect={(f) => setDriverFiles(p => ({ ...p, photo: f }))} onClear={() => setDriverFiles(p => ({ ...p, photo: null }))} /></Field>
                     </div>
                     <button onClick={handleAddDriver} disabled={isSubmitting} className="md:col-span-2 mt-4 w-full bg-[#001F3F] text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                       <Save size={18} /> {isSubmitting ? "Saving..." : "Save Driver"}
@@ -1033,6 +1072,16 @@ export default function FleetManager({ user }) {
             exit={{ opacity: 0, y: -10 }}
             className="space-y-6"
           >
+            {/* NEW ALERT LINE */}
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+              <AlertCircle className="text-amber-600 mt-0.5" size={20} />
+              <div>
+                <h4 className="text-sm font-bold text-amber-900">Verification Requirement</h4>
+                <p className="text-xs text-amber-700">
+                  To verify your account as a transporter, you must upload PAN Card, Owner Aadhar, GST Certificate and <strong>either</strong> your Bank Passbook <strong>or</strong> a Cancelled Check.
+                </p>
+              </div>
+            </div>
             {Object.entries(documentData).map(([key, value]) => {
               const isVerified = value.isVerified === "true";
               const isPending = value.isSubmitted && value.isVerified === "false";

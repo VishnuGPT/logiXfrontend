@@ -27,7 +27,7 @@ const ProfileQuickView = ({ user }) => (
   </div>
 );
 
-const DashboardOverview = ({ user}) => {
+const DashboardOverview = ({ user }) => {
   console.log(user);
   const stats = [
     { label: 'Active Shipments', value: 0, color: 'bg-blue-500', icon: <Plus size={20} /> },
@@ -102,69 +102,72 @@ const DashboardOverview = ({ user}) => {
       {/* Recent Activity */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
         <h3 className="text-lg font-semibold text-slate-800 mb-4">Recent Activity</h3>
-          <div className="text-center py-8">
-            <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Plus size={24} className="text-slate-400" />
-            </div>
-            <p className="text-slate-500">No shipment requests yet</p>
-            <p className="text-sm text-slate-400">
-              Create your first shipment request to get started
-            </p>
+        <div className="text-center py-8">
+          <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus size={24} className="text-slate-400" />
           </div>
+          <p className="text-slate-500">No shipment requests yet</p>
+          <p className="text-sm text-slate-400">
+            Create your first shipment request to get started
+          </p>
+        </div>
       </div>
 
     </div>
   );
 };
 
-const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLogout,setRefreshCounter }) => {
+// ... (imports remain the same)
+
+const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLogout, setRefreshCounter }) => {
   const navItems = [
     { name: 'Dashboard', icon: <User size={20} /> },
     { name: 'Profile', icon: <Building size={20} /> },
-    { name: 'Requests', icon: <Plus size={20} /> },
-    { name: 'Offers', icon: <DollarSign size={20} /> },
-    { name: 'Modifications', icon: <Edit size={20} /> },
-    { name: 'Confirmed Shipments', icon: <Check size={20} /> }, // <-- Add this line
+
+    { name: 'Requests', icon: <Package size={20} /> },
   ];
 
   return (
     <>
-      {/* Mobile Overlay */}
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 z-30 md:hidden"
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
       </AnimatePresence>
 
-      {/* Sidebar */}
       <aside className={`
-                fixed top-0 left-0 h-full w-64 bg-white border-r border-slate-200 flex flex-col z-40
-                transition-transform duration-300 ease-in-out
-                ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-                md:relative md:translate-x-0 md:h-screen md:flex-shrink-0
-            `}>
-        <div className="p-6 border-b border-slate-200 flex items-center h-[73px]">
-          <img src="/LOGO.png" alt="LogiXjunction Logo" className="h-12 w-auto" />
+        fixed top-0 left-0 h-screen w-72 bg-white border-r border-slate-200 flex flex-col z-[60]
+        transition-transform duration-300 ease-in-out
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        md:sticky md:translate-x-0 md:flex-shrink-0
+      `}>
+        {/* Logo Section */}
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between min-h-[80px]">
+          <img src="/LOGO.png" alt="Logo" className="h-10 w-auto" />
+          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(false)}>
+            <X size={20} />
+          </Button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
+        {/* Scrollable Navigation Area */}
+        <nav className="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
           {navItems.map(item => (
             <button
               key={item.name}
               onClick={() => {
                 setActivePage(item.name);
                 setSidebarOpen(false);
-                if(item.name==="Dashboard"){setRefreshCounter(prev=>prev+1)}
+                if (item.name === "Dashboard") setRefreshCounter(prev => prev + 1);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 ${activePage === item.name
-                ? 'bg-blue-50 text-blue-600 shadow-sm border border-blue-100'
-                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${activePage === item.name
+                ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                 }`}
             >
               {item.icon}
@@ -173,21 +176,20 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLog
           ))}
         </nav>
 
-        <div className="p-4 border-t border-slate-200">
+        {/* Bottom Section */}
+        <div className="p-4 border-t border-slate-100">
           <button
             onClick={onLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-all duration-200"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
           >
             <LogOut size={20} />
-            <span>Logout</span>
+            <span>Sign Out</span>
           </button>
         </div>
       </aside>
     </>
   );
-};
-
-const DashboardHeader = ({ activePage, setSidebarOpen, onNewRequestClick, offerCount, onNotificationClick, user }) => {
+}; const DashboardHeader = ({ activePage, setSidebarOpen, onNewRequestClick, offerCount, onNotificationClick, user }) => {
   const getPageTitle = (page) => {
     switch (page) {
       case 'Dashboard': return 'Dashboard';
@@ -223,7 +225,7 @@ const DashboardHeader = ({ activePage, setSidebarOpen, onNewRequestClick, offerC
         {/* Notification Bell for Dashboard */}
         {activePage === 'Dashboard' && (
           <div className="relative">
-            <Button variant="ghost"  className="relative">
+            <Button variant="ghost" className="relative">
               <HelpCircle size={18} className="text-slate-600" onClick={onNotificationClick} />
               Support</Button>
           </div>
@@ -253,7 +255,7 @@ export default function TransporterDashboard() {
     user: { name: "", company: "" },
     requests: [],
   });
-  const[refreshCounter,setRefreshCounter]=useState(0);
+  const [refreshCounter, setRefreshCounter] = useState(0);
 
 
   const navigate = useNavigate();
@@ -271,8 +273,8 @@ export default function TransporterDashboard() {
         const config = { headers: { authorization: `Bearer ${token}` } };
 
         const res = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/transporter/profile`,{},
-          config  
+          `${import.meta.env.VITE_API_URL}/api/transporter/profile`, {},
+          config
         );
 
         if (res.status !== 200) {
@@ -353,7 +355,7 @@ export default function TransporterDashboard() {
   };
 
   return (
-    <div className="flex bg-slate-50 font-sans min-h-screen text-slate-800">
+    <div className="flex min-h-screen bg-slate-50 font-sans text-slate-800 overflow-x-hidden">
       <Sidebar
         setRefreshCounter={setRefreshCounter}
         activePage={activeView}
@@ -362,24 +364,29 @@ export default function TransporterDashboard() {
         setSidebarOpen={setSidebarOpen}
         onLogout={handleLogout}
       />
-      <main className="flex-1 p-6 lg:p-8 overflow-y-auto">
-        <DashboardHeader
-          activePage={activeView}
-          setSidebarOpen={setSidebarOpen}
-          onNewRequestClick={() => setActiveView('New Request')}
-          user={transporterData.user}
-        />
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={activeView}
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.25 }}
-          >
-            {renderContent()}
-          </motion.div>
-        </AnimatePresence>
+
+      {/* Notice h-screen and overflow-y-auto here */}
+      <main className="flex-1 flex flex-col h-screen overflow-y-auto">
+        <div className="p-6 lg:p-8 max-w-7xl mx-auto w-full">
+          <DashboardHeader
+            activePage={activeView}
+            setSidebarOpen={setSidebarOpen}
+            onNewRequestClick={() => setActiveView('New Request')}
+            user={transporterData.user}
+          />
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeView}
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -15 }}
+              transition={{ duration: 0.25 }}
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </main>
     </div>
   );

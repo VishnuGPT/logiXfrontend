@@ -29,8 +29,8 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
     { name: 'Offered Shipments', icon: <Package size={18} /> },
     { name: "Drivers", icon: <UserCircle size={18} /> },
     { name: 'Modification Requests', icon: <Edit3 size={18} /> },
-    { name: 'Confirmed Requests', icon: <CheckCircle size={18} /> },
-    { name: 'Vehicles', icon: <Truck size={18} /> },
+    { name: 'Confirmed Requests', icon: <CheckCircle size={18}/>},
+   { name: 'Vehicles', icon: <Truck size={18} /> },
     { name: "Clients", icon: <User size={18} /> },
     { name: "Documents", icon: <FileText size={18} /> },
     { name: "Ongoing Shipment", icon: <Navigation size={18} /> }
