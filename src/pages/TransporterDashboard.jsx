@@ -231,13 +231,6 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLog
           </div>
         )}
 
-        {/* New Request Button for Requests page */}
-        {activePage === 'Requests' && (
-          <Button onClick={onNewRequestClick} className="bg-blue-600 hover:bg-blue-700 shadow-sm">
-            <Plus size={18} className="mr-2" />
-            New Request
-          </Button>
-        )}
 
         {/* Profile Quick View */}
         <ProfileQuickView user={user} />
