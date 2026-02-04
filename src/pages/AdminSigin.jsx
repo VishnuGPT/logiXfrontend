@@ -25,58 +25,47 @@ export default function AdminSignIn() {
     }));
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setError('');
-  //   setLoading(true);
-
-  //   if (!formData.email || !formData.password) {
-  //     setError('Both email and password are required.');
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await axios.post(
-  //       `${import.meta.env.VITE_API_URL}/api/admin/sign-in`,
-  //       {
-  //         email: formData.email,
-  //         password: formData.password,
-  //       }
-  //     );
-
-  //     // On success, server should return a token
-  //     if (response.status === 200 && response.data.token) {
-  //       localStorage.setItem('token', response.data.token);
-  //       // Redirect to the admin dashboard
-  //       navigate('/admin-dashboard');
-  //     } else {
-  //       setError(response.data.message || 'An unexpected error occurred.');
-  //     }
-
-  //   } catch (err) {
-  //     if (err.response) {
-  //       // Handle specific HTTP error statuses from the server
-  //       setError(err.response.data.message || 'Invalid credentials or server error.');
-  //     } else {
-  //       // Handle network errors
-  //       setError('Cannot connect to the server. Please check your network.');
-  //     }
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setLoading(true);
 
-    // 🔥 DEV ADMIN BYPASS
-    if (import.meta.env.DEV) {
-      localStorage.setItem('token', 'dev-admin-token');
-      navigate('/admin-dashboard');
+    if (!formData.email || !formData.password) {
+      setError('Both email and password are required.');
+      setLoading(false);
       return;
     }
-  };
 
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/admin/sign-in`,
+        {
+          email: formData.email,
+          password: formData.password,
+        }
+      );
+
+      // On success, server should return a token
+      if (response.status === 200 && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        // Redirect to the admin dashboard
+        navigate('/admin-dashboard');
+      } else {
+        setError(response.data.message || 'An unexpected error occurred.');
+      }
+
+    } catch (err) {
+      if (err.response) {
+        // Handle specific HTTP error statuses from the server
+        setError(err.response.data.message || 'Invalid credentials or server error.');
+      } else {
+        // Handle network errors
+        setError('Cannot connect to the server. Please check your network.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background font-sans p-4">
