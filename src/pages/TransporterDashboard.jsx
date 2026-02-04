@@ -123,8 +123,6 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLog
   const navItems = [
     { name: 'Dashboard', icon: <User size={20} /> },
     { name: 'Profile', icon: <Building size={20} /> },
-
-    { name: 'Requests', icon: <Package size={20} /> },
   ];
 
   return (
