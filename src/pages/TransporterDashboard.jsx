@@ -5,15 +5,14 @@ import { Button } from '@/components/ui/button';
 import LoaderOne from "@/components/ui/LoadingScreen";
 import axios from 'axios';
 import { ShipmentRequestForm } from '../components/CreateShipment';
-import { ShipmentRequestsPage } from '../components/ShipmentRequestPage';
 import { useNavigate } from "react-router-dom";
-import { GetModificationRequests } from '@/components/GetModificationRequests';
 import { OffersPage } from '../components/OfferRequests';
 import { toast } from 'react-hot-toast';
 import { Card, CardContent } from "@/components/ui/card";
-import { ConfirmedRequests } from '@/components/ConfirmedRequests';
 import TransporterProfile from '@/components/TransporterProfile';
 import RequestedShipment from '../components/RequestedShipment'
+import OngoingShipment from '@/components/ConfirmedShipment';
+import QuotationManagement from '@/components/QuotationManagement';
 
 const ProfileQuickView = ({ user }) => (
   <div className="flex items-center gap-3">
@@ -107,9 +106,6 @@ const DashboardOverview = ({ user }) => {
             <Plus size={24} className="text-slate-400" />
           </div>
           <p className="text-slate-500">No shipment requests yet</p>
-          <p className="text-sm text-slate-400">
-            Create your first shipment request to get started
-          </p>
         </div>
       </div>
 
@@ -123,6 +119,9 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLog
   const navItems = [
     { name: 'Dashboard', icon: <User size={20} /> },
     { name: 'Profile', icon: <Building size={20} /> },
+    { name: 'Shipment Requests', icon: <Building size={20} /> },
+    { name: 'Confirmed Shipments', icon :  <Building size={20} /> },
+    {name:'My Quotations', icon: <Building size={20}/>}
   ];
 
   return (
@@ -192,10 +191,9 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen, onLog
     switch (page) {
       case 'Dashboard': return 'Dashboard';
       case 'Profile': return 'Profile Settings';
-      case 'Requests': return 'Shipment Requests';
-      case 'Offers': return 'Offers Received';
-      case 'Modifications': return 'Modification Requests';
-      case 'New Request': return 'Create New Shipment';
+      case 'Confirmed Shipments': return 'Confirmed Shipments';
+      case 'My Quotations': return 'Quotations History';
+      case 'Shipment Requests': return 'Shipment Requests'
       default: return page;
     }
   };
@@ -251,7 +249,6 @@ export default function TransporterDashboard() {
 
   const navigate = useNavigate();
 
-  // Data Fetching and Verification
   useEffect(() => {
     const verifyAndFetch = async () => {
       try {
@@ -318,21 +315,12 @@ export default function TransporterDashboard() {
         );
       case 'Profile':
         return <TransporterProfile user={transporterData.user} />;
-      case 'Requests':
+      case 'Shipment Requests':
         return <RequestedShipment />;
-      case 'Modifications':
-        return <GetModificationRequests />;
-      case 'New Request':
-        return <ShipmentRequestForm onComplete={() => setActiveView('Requests')} />;
-      case 'Offers':
-        return <OffersPage />;
       case 'Confirmed Shipments':
-        return (
-          <ConfirmedRequests
-            requests={shipperData.requests.filter(r => r.status === 'CONFIRMED')}
-            isConfirmedTab
-          />
-        );
+        return <OngoingShipment />;
+      case 'My Quotations':
+        return <QuotationManagement />;
       default:
         return (
           <DashboardOverview

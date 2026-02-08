@@ -9,10 +9,6 @@ import { Button } from '@/components/ui/button'; // Assuming you have this from 
 import LoaderOne from "@/components/ui/LoadingScreen";
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { AdminRequestsRequests } from '../components/AdminShipmentRequests';
-import { AdminModificationRequests } from '../components/AdminModificationRequests'
-import { AdminConfirmedRequests } from '@/components/AdminConfirmedShipments';
-import { AdminOfferedShipments } from '@/components/AdminOfferedShipments';
 import AdminTransporters from '@/components/AdminTransporter';
 import AdminDrivers from '@/components/AdminDrivers';
 import ShipmentRequestsDashboard from '@/components/ShipmentRequestDashboard';
@@ -28,8 +24,6 @@ const Sidebar = ({ activePage, setActivePage, sidebarOpen, setSidebarOpen }) => 
     { name: "Transporter", icon: <Truck size={18} /> },
     { name: 'Offered Shipments', icon: <Package size={18} /> },
     { name: "Drivers", icon: <UserCircle size={18} /> },
-    { name: 'Modification Requests', icon: <Edit3 size={18} /> },
-    { name: 'Confirmed Requests', icon: <CheckCircle size={18}/>},
    { name: 'Vehicles', icon: <Truck size={18} /> },
     { name: "Clients", icon: <User size={18} /> },
     { name: "Documents", icon: <FileText size={18} /> },
@@ -213,10 +207,6 @@ export default function AdminDashboard() {
         return <AdminProfilePage user={adminData.user} />;
       case 'Shipment Requests':
         return <ShipmentRequestsDashboard />;
-      case 'Offered Shipments':
-        return <AdminOfferedShipments />;
-      case 'Modification Requests':
-        return <AdminModificationRequests />;
       case 'Confirmed Requests':
         return <ConfirmedFTLDashboard />;
       case 'Transporter':

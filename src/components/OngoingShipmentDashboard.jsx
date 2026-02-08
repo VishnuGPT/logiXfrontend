@@ -141,7 +141,7 @@ const OngoingShipmentsDashboard = () => {
   const [filterTransportMode, setFilterTransportMode] = useState('all');
   const [sortBy, setSortBy] = useState('date');
   const navigate = useNavigate();
-  
+
   const fetchFtlRequests = async () => {
     try {
       const response = await axios.get(
@@ -152,10 +152,9 @@ const OngoingShipmentsDashboard = () => {
           }
         }
       );
-      
       const data = await response?.data;
       console.log(data?.data);
-      setShipments(data?.data || []); 
+      setShipments(data?.data || []);
     } catch (error) {
       console.error("Error fetching FTL requests:", error);
       setShipments([]); // Set empty array on error
@@ -163,7 +162,7 @@ const OngoingShipmentsDashboard = () => {
       setLoading(false);
     }
   };
-  
+
   useEffect(() => {
     fetchFtlRequests();
   }, []);
@@ -227,19 +226,19 @@ const OngoingShipmentsDashboard = () => {
     const pickupCity = shipment?.pickupCity || '';
     const deliveryCity = shipment?.deliveryCity || '';
     const shipmentId = shipment?.id?.toString() || '';
-    
-    const matchesSearch = 
+
+    const matchesSearch =
       clientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       clientEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
       pickupCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
       deliveryCity.toLowerCase().includes(searchTerm.toLowerCase()) ||
       shipmentId.includes(searchTerm);
-    
+
     const matchesStatus = filterStatus === 'all' || shipment?.status === filterStatus;
     // Fixed: Case-insensitive comparison for transport mode
-    const matchesTransport = filterTransportMode === 'all' || 
+    const matchesTransport = filterTransportMode === 'all' ||
       shipment?.transportMode?.toLowerCase() === filterTransportMode.toLowerCase();
-    
+
     return matchesSearch && matchesStatus && matchesTransport;
   });
 
@@ -349,7 +348,7 @@ const OngoingShipmentsDashboard = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            
+
             <div className="relative">
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent appearance-none bg-white"
@@ -404,7 +403,7 @@ const OngoingShipmentsDashboard = () => {
             {sortedShipments.map((shipment) => {
               const statusConfig = getStatusConfig(shipment?.status);
               const StatusIcon = statusConfig.icon;
-              
+
               return (
                 <div
                   key={shipment.id}
@@ -413,14 +412,14 @@ const OngoingShipmentsDashboard = () => {
                 >
                   {/* Card Header */}
                   <div className={`bg-gradient-to-r from-${statusConfig.color}-500 to-${statusConfig.color}-600 px-4 py-3 text-white`}
-                       style={{
-                         background: `linear-gradient(to right, var(--tw-gradient-stops))`,
-                         backgroundImage: shipment?.status === 'confirmed' 
-                           ? 'linear-gradient(to right, rgb(59 130 246), rgb(37 99 235))'
-                           : shipment?.status === 'ongoing'
-                           ? 'linear-gradient(to right, rgb(249 115 22), rgb(234 88 12))'
-                           : 'linear-gradient(to right, rgb(34 197 94), rgb(22 163 74))'
-                       }}>
+                    style={{
+                      background: `linear-gradient(to right, var(--tw-gradient-stops))`,
+                      backgroundImage: shipment?.status === 'confirmed'
+                        ? 'linear-gradient(to right, rgb(59 130 246), rgb(37 99 235))'
+                        : shipment?.status === 'ongoing'
+                          ? 'linear-gradient(to right, rgb(249 115 22), rgb(234 88 12))'
+                          : 'linear-gradient(to right, rgb(34 197 94), rgb(22 163 74))'
+                    }}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2">
                         <StatusIcon className="w-5 h-5" />
@@ -430,13 +429,13 @@ const OngoingShipmentsDashboard = () => {
                     </div>
                     <div className="mt-2">
                       <span className={`text-xs ${statusConfig.bgColor} ${statusConfig.textColor} px-2 py-1 rounded-full font-medium`}
-                            style={{
-                              backgroundColor: shipment?.status === 'confirmed' 
-                                ? 'rgba(191, 219, 254, 0.9)'
-                                : shipment?.status === 'ongoing'
-                                ? 'rgba(254, 215, 170, 0.9)'
-                                : 'rgba(187, 247, 208, 0.9)'
-                            }}>
+                        style={{
+                          backgroundColor: shipment?.status === 'confirmed'
+                            ? 'rgba(191, 219, 254, 0.9)'
+                            : shipment?.status === 'ongoing'
+                              ? 'rgba(254, 215, 170, 0.9)'
+                              : 'rgba(187, 247, 208, 0.9)'
+                        }}>
                         {statusConfig.label}
                       </span>
                     </div>
@@ -519,7 +518,6 @@ const OngoingShipmentsDashboard = () => {
                       </div>
                     )}
                   </div>
-
                   {/* Card Footer */}
                   <div className="bg-gray-50 px-4 py-2 border-t border-gray-100">
                     <div className="flex items-center justify-between">
@@ -530,6 +528,7 @@ const OngoingShipmentsDashboard = () => {
                     </div>
                   </div>
                 </div>
+
               );
             })}
           </div>

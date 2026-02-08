@@ -12,6 +12,7 @@ const RequestedShipment = () => {
     const [submitLoading, setSubmitLoading] = useState(false);
     const [expandedId, setExpandedId] = useState(null);
     const [quotingId, setQuotingId] = useState(null);
+    const[verified, setVerified]= useState(false);
 
     const [quoteData, setQuoteData] = useState({
         baseFreight: '',
@@ -39,8 +40,14 @@ const RequestedShipment = () => {
             const res = await axios.get(`${API_URL}/api/transporter/available-requests`, {
                 headers: { authorization: `Bearer ${token}` }
             });
-            console.log(res.data)
-            setRequests(res.data.data);
+            console.log(res,"hello")
+            if(res.data.message=="Transporter not verified"){
+                setRequests([])
+            }else{
+                setVerified(true)
+                setRequests(res.data.data);
+            }
+            
         } catch (err) {
             console.error("Error fetching requests", err);
         } finally {
@@ -111,11 +118,18 @@ const RequestedShipment = () => {
             </div>
         );
     }
+    if(!verified){
+        return(
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-slate-500">
+                <p>You are not verified by our Team</p>
+            </div>
+
+        )
+    }
 
     return (
         <div className="max-w-5xl mx-auto p-4 md:p-6 space-y-6">
             <header className="mb-8">
-                <h1 className="text-2xl font-bold text-slate-800">Available Shipments</h1>
                 <p className="text-slate-500 text-sm">Review and submit quotations for active logistics requests.</p>
             </header>
 

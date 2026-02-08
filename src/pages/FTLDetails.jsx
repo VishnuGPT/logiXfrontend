@@ -521,7 +521,10 @@ const FTLDetails = () => {
                 </div>
               </div>
             </div>
+            <pre>{JSON.stringify(ftl, null, 2)}</pre>
+            <button  className='border-2 border-red-600 p-4 font-bold hover:bg-red-400' >ADMIN PAYMENT BYPASS</button>
           </div>
+
 
           {/* Right Column - Summary */}
           <div className="lg:col-span-1">
@@ -534,19 +537,16 @@ const FTLDetails = () => {
               </div>
               <div className="p-6 space-y-4">
                 {/* Cost */}
-                <div className={`${
-                  ftl.cost 
-                    ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200' 
-                    : 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200'
-                } border rounded-lg p-4`}>
-                  <p className={`text-sm font-medium mb-1 ${
-                    ftl.cost ? 'text-green-700' : 'text-yellow-700'
-                  }`}>
+                <div className={`${ftl.cost
+                  ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200'
+                  : 'bg-gradient-to-r from-yellow-50 to-amber-50 border-yellow-200'
+                  } border rounded-lg p-4`}>
+                  <p className={`text-sm font-medium mb-1 ${ftl.cost ? 'text-green-700' : 'text-yellow-700'
+                    }`}>
                     Order Value
                   </p>
-                  <p className={`text-3xl font-bold ${
-                    ftl.cost ? 'text-green-900' : 'text-yellow-900'
-                  }`}>
+                  <p className={`text-3xl font-bold ${ftl.cost ? 'text-green-900' : 'text-yellow-900'
+                    }`}>
                     {formatCurrency(ftl.cost)}
                   </p>
                   {!ftl.cost && (
@@ -663,7 +663,7 @@ const FTLDetails = () => {
         </div>
       </div>
 
-      
+
       {showCostModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg max-w-md w-full p-6">
