@@ -36,6 +36,8 @@ import CallModal from './pages/landingPageComponents/CallModal';
 import ConfirmedFTLDashboard from './components/ConfirmedFTLDashboard';
 import FTLDetails from './pages/FTLDetails';
 import DriverDetailPage from './pages/DriverDetailPage';
+// about us
+// import LogixAbout from "./LogixAbout";
 
 // --- Layouts ---
 const MainLayout = () => (
@@ -57,7 +59,7 @@ const FullPageLayout = () => (
 
 // --- App Component ---
 function App() {
-  
+
   return (
     <>
       <Router>
@@ -68,14 +70,15 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/landing" element={<LandingPage />} />
             <Route path="/our-story" element={<OurStory />} />
-            <Route path='/about-us' element={<AboutUs/>}/>
+            <Route path='/about-us' element={<AboutUs />} />
+            {/* <Route path="/about-us" element={<LogixAbout />} /> */}
             <Route path="/careers" element={<Careers />} />
             <Route path="/join-us" element={<Careers />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/cookies" element={<CookiePolicy />} />
             <Route path="/terms" element={<TermsOfService />} />
-            <Route path='/faq' element= {<FAQ/>}/>
-            <Route path='/contact' element= {<FAQ/>} />
+            <Route path='/faq' element={<FAQ />} />
+            <Route path='/contact' element={<FAQ />} />
           </Route>
 
           {/* --- Full-screen pages (no Navbar/Footer) --- */}
@@ -87,7 +90,7 @@ function App() {
             <Route path="/admin-sign-in" element={<AdminSignIn />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignupFormPage />} />
-            <Route path='complete-profile' element={<CompleteProfilePage/>}/>
+            <Route path='complete-profile' element={<CompleteProfilePage />} />
 
             {/* Registration Routes */}
             <Route path="/carrier-registration" element={<CarrierRegistration />} />
@@ -99,9 +102,9 @@ function App() {
             <Route path="/transporter-dashboard" element={<TransporterDashboard />} />
             <Route path="/available-transporter" element={<AvailableTransporters />} />
             <Route path="/admin/transporters/:id" element={<TransporterDetails />} />
-            <Route path='/ftl-details/:id' element={<FTLDetails/>}/>
-            <Route path='/driver/:driverId' element={<DriverDetailPage/>}/>
-            <Route path="/client-dashboard" element={<ClientDashboard/>}/>
+            <Route path='/ftl-details/:id' element={<FTLDetails />} />
+            <Route path='/driver/:driverId' element={<DriverDetailPage />} />
+            <Route path="/client-dashboard" element={<ClientDashboard />} />
           </Route>
         </Routes>
       </Router>
